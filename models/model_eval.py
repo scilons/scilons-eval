@@ -60,40 +60,59 @@ class ModelEval:
     
     def evaluate_model(self):
 
-        trained_model, dataset_dic, labels_mappert = self.train_model()
+        trained_model, dataset_dict, labels_mapper = self.train_model()
         trained_model.eval()
 
-        all_predictions = []
-        all_labels = []
+        # NER is evaluated according to span-level macro F1
+        if self.task == 'ner':
 
-        for sample in dataset_dict['test']:
-            inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(self.device) for key in sample.keys() if key != 'labels'}
-            labels = torch.tensor(sample['labels']).unsqueeze(0).to(self.device)
+            true_spans_by_type = defaultdict(list)
+            predicted_spans_by_type = defaultdict(list)
+            
+            for sample in dataset_dict['test']:
+                inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(device) for key in sample.keys() if key != 'labels'}
+                labels = sample["labels"]
             
             with torch.no_grad():
                 outputs = trained_model(**inputs)
-                predictions = torch.argmax(outputs.logits, dim=-1).cpu().numpy()
-                
-            true_spans = extract_spans(labels)
-            predicted_spans = extract_spans(predictions)
-
+                predictions = torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
+                    
+            true_spans = extract_spans(labels, labels_mapper)
+            predicted_spans = extract_spans(predictions, labels_mapper)
+    
             for span in true_spans:
                 true_spans_by_type[span["type"]].append(span)
-    
+        
             for span in predicted_spans:
                 predicted_spans_by_type[span["type"]].append(span)
+                
+        
+            # Compute precision, recall, and F1 score for each span type
+            span_types = set(list(true_spans_by_type.keys()) + list(predicted_spans_by_type.keys()))
+            macro_f1_scores = []
+    
+            for span_type in span_types:
+                true_positives = sum(1 for span in predicted_spans_by_type[span_type] if span in true_spans_by_type[span_type])
+                false_positives = sum(1 for span in predicted_spans_by_type[span_type] if span not in true_spans_by_type[span_type])
+                false_negatives = sum(1 for span in true_spans_by_type[span_type] if span not in predicted_spans_by_type[span_type])
+            
+            precision = true_positives / (true_positives + false_positives + 1e-9)
+            recall = true_positives / (true_positives + false_negatives + 1e-9)
+            f1 = 2 * (precision * recall) / (precision + recall + 1e-9)
+            
+            macro_f1_scores.append(f1)
+    
+            macro_f1_score = sum(macro_f1_scores) / len(macro_f1_scores)
+            
+            return macro_f1_score, precision, recall, f1
 
-
-        return all_predictions, all_labels
-
-        # Flatten the lists of predictions and true labels
-        flat_predictions = np.concatenate(all_predictions, axis=0)
-        flat_labels = np.concatenate(all_labels, axis=0)
-
-        # Compute macro F1 score
-        precision, recall, f1, _ = precision_recall_fscore_support(flat_labels, flat_predictions, average='macro')
-
-        return precision, recall, f1
+        # PICO is evaluated based on token-level macro-F1
+        elif self.task == 'pico':
+            return None
+        
+        # REL and CSL are evaluated based on sentence-level macro-F1
+        elif self.task == 'cls' or self.task == 'rel':
+            return None
 
 def main():
     parser = argparse.ArgumentParser()
