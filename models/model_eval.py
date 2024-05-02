@@ -1,7 +1,7 @@
 from transformers import BertTokenizer, BertForTokenClassification, Trainer, TrainingArguments
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans
-
+import argparse
 
 class ModelEval:
 
@@ -94,3 +94,37 @@ class ModelEval:
         precision, recall, f1, _ = precision_recall_fscore_support(flat_labels, flat_predictions, average='macro')
 
         return precision, recall, f1
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--task', type=str, help='Specify the task name')
+    parser.add_argument('-m', '--model', type=str, help='Specify the model name from huggingface')
+    parser.add_argument('-k', '--tokenizer', type=str, help='Specify the tokenizer name from huggingface')
+    parser.add_argument('-d', '--data', type=str, help='Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)')
+
+    args = parser.parse_args()
+
+    task = args.task
+    model_name = args.model
+    tokenizer_name = args.tokenizer
+    data_path = args.data
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    model_eval = ModelEval(
+        task=task, 
+        model_name=model_name,
+        tokenizer_name=tokenizer_name,
+        data_path=data_path,
+        device=device
+        )
+
+    precision, recall, f1 = model_eval.evaluate_model()
+
+    print("Macro precision score (span-level): ", precision)
+    print("Macro recall score (span-level): ", recall)
+    print("Macro F1 score (span-level): ", f1)
+
+    
+if __name__ == "__main__":
+    main()
