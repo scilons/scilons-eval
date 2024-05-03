@@ -1,7 +1,11 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
+import os
 
 def read_txt_file_ner(file_path):
+
+    directories = file_path.split(os.path.sep)
+    dataset_name = directories[-2]
 
     with open(file_path, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -13,10 +17,15 @@ def read_txt_file_ner(file_path):
                 sentences.append(sentence_tokens)
                 sentence_tokens = []
         else:
-            token, pos_tag, _, ner_tag = line.strip().split("\t")
-            sentence_tokens.append((token, ner_tag))
+            if dataset_name == 'sciie':
+                token, pos_tag, _, ner_tag = line.strip().split(" ")
+                sentence_tokens.append((token, ner_tag))
+            else:
+                token, pos_tag, _, ner_tag = line.strip().split("\t")
+                sentence_tokens.append((token, ner_tag))
     if sentence_tokens:  # Append the last sentence if not empty
         sentences.append(sentence_tokens)
+        
     return sentences
 
 def tokenize_data_ner(sentences, tokenizer):
