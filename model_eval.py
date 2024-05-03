@@ -72,7 +72,7 @@ class ModelEval:
             predicted_spans_by_type = defaultdict(list)
             
             for sample in dataset_dict['test']:
-                inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(device) for key in sample.keys() if key != 'labels'}
+                inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(self.device) for key in sample.keys() if key != 'labels'}
                 labels = sample["labels"]
             
                 with torch.no_grad():
