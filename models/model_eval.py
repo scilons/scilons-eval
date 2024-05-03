@@ -87,7 +87,7 @@ class ModelEval:
                     predicted_spans_by_type[span["type"]].append(span)
                 
         
-            # Compute precision, recall, and F1 score for each span type
+            # Compute F1 score for each span type
             span_types = set(list(true_spans_by_type.keys()) + list(predicted_spans_by_type.keys()))
             macro_f1_scores = []
     

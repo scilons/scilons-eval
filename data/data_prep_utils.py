@@ -63,25 +63,37 @@ def extract_labels(tokenized_sentences):
     return all_labels
 
 
-# Function to extract spans from labels
+# Function to extract spans from labels for evaluating span-level metrics
 def extract_spans(labels, labels_mapper):
     spans = []
     current_span = None
     label_map_inv = {v: k for k, v in labels_mapper.items()}
+    
     for i, label_id in enumerate(labels):
         label = label_map_inv[label_id]
+        
         if label.startswith("B-"):
             if current_span is not None:
                 spans.append(current_span)
             current_span = {"type": label[2:], "start": i, "end": i}
+            
         elif label.startswith("I-"):
             if current_span is not None:
-                current_span["end"] = i
-        else:
+                if current_span["type"] == label[2:]:
+                    current_span["end"] = i
+                else:
+                    spans.append(current_span)
+                    current_span = {"type": label[2:], "start": i, "end": i}
+            else:
+                current_span = {"type": label[2:], "start": i, "end": i}
+                    
+        else:  # Outside tag
             if current_span is not None:
                 spans.append(current_span)
                 current_span = None
+                
     if current_span is not None:
         spans.append(current_span)
+        
     return spans
 
