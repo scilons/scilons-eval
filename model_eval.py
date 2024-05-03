@@ -2,6 +2,7 @@ from transformers import BertTokenizer, BertForTokenClassification, Trainer, Tra
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans
 import argparse
+import torch 
 
 class ModelEval:
 
