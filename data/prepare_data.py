@@ -2,7 +2,13 @@ import torch
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from datasets import Dataset, DatasetDict
-from data.data_prep_utils import read_txt_file_ner, tokenize_data_ner, prepare_input_ner, extract_labels
+from data.data_prep_utils import (
+    read_txt_file_ner,
+    read_txt_file_pico, 
+    tokenize_data_ner, 
+    prepare_input_ner, 
+    extract_labels
+)
 
 
 class DatasetPrep:
@@ -22,7 +28,7 @@ class DatasetPrep:
     
     def run(self) -> Dataset:
         
-        if self.task == "ner":
+        if self.task == 'ner' or self.task == 'pico':
             dataset_dict, labels_mapper = self.prep_ner_data()
             return dataset_dict, labels_mapper
         else:
@@ -36,7 +42,11 @@ class DatasetPrep:
         dataset_dict = DatasetDict()
 
         for dataset in data_types:
-            sentences = read_txt_file_ner(self.data_path + "/" + dataset + ".txt")
+            if self.task == 'ner':
+                sentences = read_txt_file_ner(self.data_path + "/" + dataset + ".txt")
+            elif self.task == 'pico':
+                sentences = read_txt_file_pico(self.data_path + "/" + dataset + ".txt")
+
             tokenized_sentences = tokenize_data_ner(sentences, self.tokenizer)
             token_ids, attention_masks, token_type_ids, labels = prepare_input_ner(tokenized_sentences, self.tokenizer,labels_mapper, self.device)
             
@@ -53,7 +63,12 @@ class DatasetPrep:
 
 
     def _get_labels_list(self):
-        sentences = read_txt_file_ner(self.data_path + "/train.txt")
+        
+        if self.task == 'ner':
+            sentences = read_txt_file_ner(self.data_path + "/train.txt")
+        elif self.task =='pico':
+            sentences = read_txt_file_pico(self.data_path + "/train.txt")
+
         tokenized_sentences = tokenize_data_ner(sentences, self.tokenizer)
         all_labels = extract_labels(tokenized_sentences)
         labels_list = list(set(all_labels))

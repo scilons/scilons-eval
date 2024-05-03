@@ -28,6 +28,28 @@ def read_txt_file_ner(file_path):
         
     return sentences
 
+def read_txt_file_pico(file_path):
+
+    data = []  # List to store parsed data
+    current_sentence = []
+    with open(file_path, "r") as file:
+        for line in file:
+            line = line.strip()
+            if line.startswith("-DOCSTART-"):
+                continue
+            elif line == "":
+                if current_sentence:
+                    data.append(current_sentence)
+                    current_sentence = []
+                continue
+            else:
+                tokens = line.split()
+                word = tokens[0]
+                label = tokens[-1]
+                current_sentence.append((word, label))
+
+    return sentences
+
 def tokenize_data_ner(sentences, tokenizer):
     tokenized_sentences = []
     for sentence in sentences:

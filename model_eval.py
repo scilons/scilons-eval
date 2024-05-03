@@ -110,9 +110,31 @@ class ModelEval:
 
         # PICO is evaluated based on token-level macro-F1
         elif self.task == 'pico':
-            return None
+
+            predictions = []
+            true_labels = []
+
+            for sample in dataset_dict['test']:
+                
+                inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(device) for key in sample.keys() if key != 'labels'}
+                labels = sample["labels"]
+                
+            with torch.no_grad():
+                outputs = model(**inputs)
+                predicted_labels = torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
+
+            # Extend lists
+            predictions.extend(predicted_labels)
+            true_labels.extend(labels)
+
+            # Compute metrics
+            macro_f1 = f1_score(true_labels, predictions, average='macro')
+            macro_precision = precision_score(true_labels, predictions, average='macro')
+            macro_recall = recall_score(true_labels, predictions, average='macro')
+
+            return macro_f1
         
-        # REL and CSL are evaluated based on sentence-level macro-F1
+        # REL and CLS are evaluated based on sentence-level macro-F1
         elif self.task == 'cls' or self.task == 'rel':
             return None
 
@@ -144,6 +166,8 @@ def main():
 
     if task == 'ner':
         print("Macro F1 score (span-level): ", eval_score)
+    elif task == 'pico':
+        print("Macro F1 score (token-level): ", eval_score)
 
     
 if __name__ == "__main__":
