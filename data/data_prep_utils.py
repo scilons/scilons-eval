@@ -48,7 +48,7 @@ def read_txt_file_pico(file_path):
                 label = tokens[-1]
                 current_sentence.append((word, label))
 
-    return sentences
+    return data
 
 def tokenize_data_ner(sentences, tokenizer):
     tokenized_sentences = []
