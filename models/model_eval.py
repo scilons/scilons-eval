@@ -1,9 +1,6 @@
 from transformers import BertTokenizer, BertForTokenClassification, Trainer, TrainingArguments
-import sys
-sys.path.append('../data') 
-
-from prepare_data import DatasetPrep
-from data_prep_utils import extract_spans
+from ..data.prepare_data import DatasetPrep
+from ..data.data_prep_utils import extract_spans
 import argparse
 
 class ModelEval:
