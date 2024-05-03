@@ -17,48 +17,43 @@ class ModelEval:
 
     def train_model(self):
 
-        if self.task == 'ner':
-
-            tokenizer = BertTokenizer.from_pretrained(self.tokenizer_name)
-            dataset_prep = DatasetPrep(
-                task=self.task, 
-                data_path=self.data_path, 
-                tokenizer=tokenizer, 
-                device=self.device
-                )   
-            dataset_dict, labels_mapper = dataset_prep.run()
+        tokenizer = BertTokenizer.from_pretrained(self.tokenizer_name)
+        dataset_prep = DatasetPrep(
+            task=self.task, 
+            data_path=self.data_path, 
+            tokenizer=tokenizer, 
+            device=self.device
+            )   
+        dataset_dict, labels_mapper = dataset_prep.run()
             
-            model = BertForTokenClassification.from_pretrained(self.model_name, num_labels=len(labels_mapper))
-            model = model.to(self.device)
+        model = BertForTokenClassification.from_pretrained(self.model_name, num_labels=len(labels_mapper))
+        model = model.to(self.device)
             
            
-            training_args = TrainingArguments(
-                output_dir="./results",
-                num_train_epochs=3,
-                per_device_train_batch_size=8,
-                report_to="wandb",
-                logging_steps=100,
-                save_steps=500, 
-                evaluation_strategy="steps",
-                eval_steps=500,
-                )
+        training_args = TrainingArguments(
+            output_dir="./results",
+            num_train_epochs=3,
+            per_device_train_batch_size=8,
+            report_to="wandb",
+            logging_steps=100,
+            save_steps=500, 
+            evaluation_strategy="steps",
+            eval_steps=500,
+            )
 
-            trainer = Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=dataset_dict['train'], 
-                eval_dataset=dataset_dict['dev']
-                )
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=dataset_dict['train'], 
+            eval_dataset=dataset_dict['dev']
+            )
 
-            trainer.train()
+        trainer.train()
 
-            trainer.save_model("results/models")
+        trainer.save_model("results/models")
 
-            return model, dataset_dict, labels_mapper
+        return model, dataset_dict, labels_mapper
             
-        else:
-            return None
-
     
     def evaluate_model(self):
 
