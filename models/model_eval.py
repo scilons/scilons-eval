@@ -73,18 +73,18 @@ class ModelEval:
                 inputs = {key: torch.tensor(sample[key]).unsqueeze(0).to(device) for key in sample.keys() if key != 'labels'}
                 labels = sample["labels"]
             
-            with torch.no_grad():
-                outputs = trained_model(**inputs)
-                predictions = torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
+                with torch.no_grad():
+                    outputs = trained_model(**inputs)
+                    predictions = torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     
-            true_spans = extract_spans(labels, labels_mapper)
-            predicted_spans = extract_spans(predictions, labels_mapper)
+                true_spans = extract_spans(labels, labels_mapper)
+                predicted_spans = extract_spans(predictions, labels_mapper)
     
-            for span in true_spans:
-                true_spans_by_type[span["type"]].append(span)
-        
-            for span in predicted_spans:
-                predicted_spans_by_type[span["type"]].append(span)
+                for span in true_spans:
+                    true_spans_by_type[span["type"]].append(span)
+            
+                for span in predicted_spans:
+                    predicted_spans_by_type[span["type"]].append(span)
                 
         
             # Compute precision, recall, and F1 score for each span type
@@ -96,15 +96,15 @@ class ModelEval:
                 false_positives = sum(1 for span in predicted_spans_by_type[span_type] if span not in true_spans_by_type[span_type])
                 false_negatives = sum(1 for span in true_spans_by_type[span_type] if span not in predicted_spans_by_type[span_type])
             
-            precision = true_positives / (true_positives + false_positives + 1e-9)
-            recall = true_positives / (true_positives + false_negatives + 1e-9)
-            f1 = 2 * (precision * recall) / (precision + recall + 1e-9)
-            
-            macro_f1_scores.append(f1)
+                precision = true_positives / (true_positives + false_positives + 1e-9)
+                recall = true_positives / (true_positives + false_negatives + 1e-9)
+                f1 = 2 * (precision * recall) / (precision + recall + 1e-9)
+                
+                macro_f1_scores.append(f1)
     
             macro_f1_score = sum(macro_f1_scores) / len(macro_f1_scores)
             
-            return macro_f1_score, precision, recall, f1
+            return macro_f1_score
 
         # PICO is evaluated based on token-level macro-F1
         elif self.task == 'pico':
@@ -138,11 +138,10 @@ def main():
         device=device
         )
 
-    precision, recall, f1 = model_eval.evaluate_model()
+    eval_score = model_eval.evaluate_model()
 
-    print("Macro precision score (span-level): ", precision)
-    print("Macro recall score (span-level): ", recall)
-    print("Macro F1 score (span-level): ", f1)
+    if task == 'ner':
+        print("Macro F1 score (span-level): ", eval_score)
 
     
 if __name__ == "__main__":
