@@ -115,7 +115,7 @@ class ModelEval:
                 labels = sample["labels"]
                 
             with torch.no_grad():
-                outputs = model(**inputs)
+                outputs = trained_model(**inputs)
                 predicted_labels = torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
 
             # Extend lists
