@@ -1,6 +1,7 @@
 from transformers import BertTokenizer, BertForTokenClassification, Trainer, TrainingArguments
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans
+from collections import defaultdict
 import argparse
 import torch 
 
