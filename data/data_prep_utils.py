@@ -1,3 +1,6 @@
+import torch
+from torch.nn.utils.rnn import pad_sequence
+
 def read_txt_file_ner(file_path):
 
     with open(file_path, "r", encoding="utf-8") as file:
