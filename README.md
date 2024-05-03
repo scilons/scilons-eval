@@ -46,3 +46,16 @@ Evaluated using macro-F1 on the token evel.
 
 
 ## Results on SciBERT
+
+| Field | Task | Dataset      | Model Name                       | Metric                 | Result             |
+|-------|------|--------------|----------------------------------|------------------------|--------------------|
+| Bio   | NER  | BC5CDR       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.9947334962764466 |
+|       |      | JNLPBA       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.9718915854922392 |
+|       |      | NCBI-disease | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.9823094237515403 |
+|       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.7925765849220929 |
+|       | DEP  | GENIA-LAS    |                                  |                        |                    |
+|       |      | GENIA-UAS    |                                  |                        |                    |
+|       | REL  | ChemProt     |                                  |                        |                    |
+| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.8541137319732242 |
+|       | REL  | SciERC       |                                  |                        |                    |
+|       | CLS  |              |                                  |                        |                    |
