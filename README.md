@@ -42,6 +42,7 @@ Evaluated using macro-F1 on the token evel.
 * ChemProt (Kringelum et al., 2016) for REL
 * SciERC (Luan et al., 2018) for REL and NER
 * ACL-ARC (Jurgens et al., 2018) for CLS
+* Paper Field Classification (from the Microsoft Academic Graph data) for CLS
 * SciCite (Cohan et al., 2019) for CLS
 
 
@@ -59,4 +60,5 @@ Evaluated using macro-F1 on the token evel.
 | CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.85411 |
 |       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
 |       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.71327|
+| Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)|        |
 | Multi | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
