@@ -59,3 +59,4 @@ Evaluated using macro-F1 on the token evel.
 | CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.85411 |
 |       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
 |       | CLS  |              |                                  |                        |         |
+| Multi | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
