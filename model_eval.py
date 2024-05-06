@@ -158,9 +158,8 @@ class ModelEval:
             macro_f1 = f1_score(true_labels, predictions, average="macro")
             return macro_f1
 
-        # REL and CLS are evaluated based on sentence-level macro-F1
-        elif self.task == "cls" or self.task == "rel":
-            return None
+        #elif self.task == "cls" or self.task == "rel":
+        #    return None
 
 
 def main():
@@ -203,7 +202,7 @@ def main():
 
     if task == "ner":
         print("Macro F1 score (span-level): ", eval_score)
-    elif task == "pico":
+    elif task == "pico" or task == "rel" or task == "cls":
         print("Macro F1 score (token-level): ", eval_score)
 
 
