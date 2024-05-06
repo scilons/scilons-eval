@@ -4,7 +4,7 @@ A framework for evaluating HuggingFace models on specific tasks by fine-tuning o
 
 ## Running script
 
-The following arguments should be given to run the script:
+In order to get the evaluation result, run the ```model_eval.py``` script with the following arguments:
 
 
 * ```-t``` or``` --task```: the task at hand, chosen from a specific list (see below).
