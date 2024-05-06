@@ -27,7 +27,7 @@ Evaluated using macro-F1 on the token evel.
 
 * ```dep```:
 
-* ```rel```:
+* ```rel```: Relation Classication. The model predicts the type of relation expressed between two entities, which are encapsulated in the sentence by inserted special tokens. REL tasks are evaluated using Macro F1 on the sentence level.
 
 * ```cls```:
 
@@ -55,7 +55,7 @@ Evaluated using macro-F1 on the token evel.
 |       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.79258 |
 |       | DEP  | GENIA-LAS    |                                  |                        |         |
 |       |      | GENIA-UAS    |                                  |                        |         |
-|       | REL  | ChemProt     |                                  |                        |         |
+|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.56720|
 | CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.85411 |
-|       | REL  | SciERC       |                                  |                        |         |
+|       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
 |       | CLS  |              |                                  |                        |         |
