@@ -45,6 +45,7 @@ Evaluated using macro-F1 on the token level.
 * Paper Field Classification (from the Microsoft Academic Graph data) for CLS
 * SciCite (Cohan et al., 2019) for CLS
 
+All datasets are available on the [SciBERT GitHub repository](https://github.com/allenai/scibert/tree/master/data) and can be directly used from there.
 
 ## Results on SciBERT
 
