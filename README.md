@@ -22,8 +22,8 @@ The following tasks are available for evaluation:
 
 * ```ner```: Named Entity Recognition. NER tasks are evaluated using Macro F1 on the span level.
 
-* ```pico```:  A equence labeling task where the model extracts spans describing the Participants, Interventions, Comparisons, and Outcomes (PICO) in a clinical trial paper.
-Evaluated using macro-F1 on the token evel.
+* ```pico```:  A sequence labeling task where the model extracts spans describing the Participants, Interventions, Comparisons, and Outcomes (PICO) in a clinical trial paper.
+Evaluated using macro-F1 on the token level.
 
 * ```dep```:
 
@@ -61,4 +61,4 @@ Evaluated using macro-F1 on the token evel.
 |       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
 |       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.71327|
 | Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)|        |
-| Multi | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
+|       | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
