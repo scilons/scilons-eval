@@ -1,7 +1,7 @@
 from transformers import (
-    BertTokenizer,
-    BertForTokenClassification,
-    BertForSequenceClassification,
+    AutoTokenizer,
+    AutoModelForTokenClassification,
+    AutoModelForSequenceClassification,
     Trainer,
     TrainingArguments,
 )
@@ -22,7 +22,7 @@ class ModelEval:
         self.device = device
 
     def train_model(self):
-        tokenizer = BertTokenizer.from_pretrained(self.tokenizer_name)
+        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
         dataset_prep = DatasetPrep(
             task=self.task,
             data_path=self.data_path,
@@ -32,15 +32,13 @@ class ModelEval:
         dataset_dict, labels_mapper = dataset_prep.run()
 
         if self.task == "ner" or self.task == "pico":
-            model = BertForTokenClassification.from_pretrained(
+            model = AutoModelForTokenClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper)
             )
         elif self.task == "rel" or self.task == "cls":
-            model = BertForSequenceClassification.from_pretrained(
+            model = AutoModelForSequenceClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper)
             )
-
-        model = model.to(self.device)
 
         training_args = TrainingArguments(
             output_dir="./results",
@@ -131,7 +129,7 @@ class ModelEval:
 
             return macro_f1_score
 
-        # PICO is evaluated based on token-level macro-F1
+        # PICO, REL, and CLS are evaluated based on sample-level (either token or sentence) macro-F1
         elif self.task == "pico" or self.task == "rel" or self.task == "cls":
             predictions = []
             true_labels = []
@@ -157,14 +155,19 @@ class ModelEval:
             # Compute metrics
             macro_f1 = f1_score(true_labels, predictions, average="macro")
             return macro_f1
-
-        #elif self.task == "cls" or self.task == "rel":
-        #    return None
+        
+        # Placeholder for DEP code
+        elif self.task == 'dep':
+            return 0
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task", type=str, help="Specify the task name")
+    parser.add_argument(
+        "-t", 
+        "--task", 
+        type=str, 
+        help="Specify the task name")
     parser.add_argument(
         "-m", "--model", type=str, help="Specify the model name from huggingface"
     )
@@ -202,9 +205,10 @@ def main():
 
     if task == "ner":
         print("Macro F1 score (span-level): ", eval_score)
-    elif task == "pico" or task == "rel" or task == "cls":
+    elif task == "pico":
         print("Macro F1 score (token-level): ", eval_score)
-
+    elif task == "rel" or task == "cls":
+         print("Macro F1 score (sentence-level): ", eval_score)
 
 if __name__ == "__main__":
     main()

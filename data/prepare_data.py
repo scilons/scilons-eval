@@ -23,7 +23,6 @@ class DatasetPrep:
         data_path: str that describes the path where the train.txt, dev.txt, and test.txt datasets are
         tokenizer: Transformer's tokenizer according to the model used
         device: current device
-        label: list of labels used in the current task
         """
         self.task = task
         self.data_path = data_path
@@ -49,32 +48,32 @@ class DatasetPrep:
         dataset_dict = DatasetDict()
 
         for dataset in data_types:
+            # Read txt file based on given task
             if self.task == "ner":
                 sentences = read_txt_file_ner(self.data_path + "/" + dataset + ".txt")
                 tokenized_sentences = tokenize_data_ner(sentences, self.tokenizer)
+
             elif self.task == "pico":
                 sentences = read_txt_file_pico(self.data_path + "/" + dataset + ".txt")
                 tokenized_sentences = tokenize_data_ner(sentences, self.tokenizer)
+
             elif self.task == "rel" or self.task == "cls":
                 sentences, categor_labels = extract_texts_labels_rel_cls(
                     self.data_path + "/" + dataset + ".txt"
                 )
                 tokenized_sentences = tokenize_function(sentences, self.tokenizer)
 
+            # Get tokenized input based on task
             if self.task == "ner" or self.task == "pico":
                 token_ids, attention_masks, token_type_ids, labels = prepare_input_ner(
                     tokenized_sentences, self.tokenizer, labels_mapper, self.device
                 )
             elif self.task == "rel" or self.task == "cls":
-                (
-                    token_ids,
-                    attention_masks,
-                    token_type_ids,
-                    labels,
-                ) = prepare_input_rel_cls(
+                token_ids, attention_masks, token_type_ids, labels = prepare_input_rel_cls(
                     tokenized_sentences, labels_mapper, categor_labels, self.device
                 )
 
+            # Create a Dataset object
             dataset_inputs = Dataset.from_dict(
                 {
                     "input_ids": token_ids,
