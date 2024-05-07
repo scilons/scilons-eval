@@ -182,10 +182,10 @@ def tokenize_function(texts, tokenizer):
 
 
 def prepare_input_rel_cls(tokenized_sentences, labels_mapper, labels, device):
-    labels_encoded = [labels_mapper[label] for label in labels]
 
     token_ids = tokenized_sentences["input_ids"].to(device)
     attention_masks = tokenized_sentences["attention_mask"].to(device)
     token_type_ids = tokenized_sentences["token_type_ids"].to(device)
+    labels_encoded = [labels_mapper[label] for label in labels]
 
-    return labels_encoded, token_ids, attention_masks, token_type_ids
+    return token_ids, attention_masks, token_type_ids, labels_encoded
