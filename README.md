@@ -57,9 +57,9 @@ All datasets are available on the [SciBERT GitHub repository](https://github.com
 |       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.78952 |
 |       | DEP  | GENIA-LAS    |                                  |                        |         |
 |       |      | GENIA-UAS    |                                  |                        |         |
-|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Micro F1 (sentence-level)| 0.56720|
-| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.756007 |
-|       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
+|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Micro F1 (sentence-level)| 0.83713|
+| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.75601 |
+|       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.82715|
 |       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.71327|
 | Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.73595|
 |       | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
