@@ -152,6 +152,14 @@ class ModelEval:
                 predictions.extend(predicted_labels)
                 true_labels.extend(labels)
 
+            directories = self.data_path.split(os.path.sep)
+            dataset_name = directories[-1]
+
+            # ChemProt is evaluated using Micro-F1
+            if dataset_name == 'chemprot':
+                micro_f1 = f1_score(true_labels, predictions, average="micro")
+                return micro_f1
+
             # Compute metrics
             macro_f1 = f1_score(true_labels, predictions, average="macro")
             return macro_f1
