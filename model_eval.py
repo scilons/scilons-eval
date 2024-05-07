@@ -149,9 +149,13 @@ class ModelEval:
                         torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     )
 
-                # Extend lists
-                predictions.extend(predicted_labels)
-                true_labels.extend(labels)
+                if self.task == "pico":
+                    # Results for pico are lists but integers for the other tasks
+                    predictions.extend(predicted_labels)
+                    true_labels.extend(labels)
+                else:
+                    predictions.append(predicted_labels)
+                    true_labels.append(labels)
 
             directories = self.data_path.split(os.path.sep)
             dataset_name = directories[-1]
