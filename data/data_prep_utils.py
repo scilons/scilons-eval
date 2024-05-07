@@ -74,7 +74,7 @@ def prepare_input_ner(tokenized_data, tokenizer, label_map, device):
     max_seq_length = max(len(tokens) for tokens, _ in tokenized_data)
 
     for tokens, entity_labels in tokenized_data:
-        encoded_dict = tokenizer.encode_plus(
+        encoded_dict = tokenizer(
             tokens,
             max_length=max_seq_length,
             pad_to_max_length=True,
