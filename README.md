@@ -51,14 +51,14 @@ All datasets are available on the [SciBERT GitHub repository](https://github.com
 
 | Field | Task | Dataset      | Model Name                       | Metric                 | Result  |
 |-------|------|--------------|----------------------------------|------------------------|---------|
-| Bio   | NER  | BC5CDR       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.99473 |
-|       |      | JNLPBA       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.97189 |
-|       |      | NCBI-disease | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.98231 |
-|       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.79258 |
+| Bio   | NER  | BC5CDR       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.97407 |
+|       |      | JNLPBA       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.95741 |
+|       |      | NCBI-disease | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.92645 |
+|       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.78952 |
 |       | DEP  | GENIA-LAS    |                                  |                        |         |
 |       |      | GENIA-UAS    |                                  |                        |         |
-|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.56720|
-| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.85411 |
+|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Micro F1 (sentence-level)| 0.56720|
+| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.756007 |
 |       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.80679|
 |       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.71327|
 | Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.73595|
