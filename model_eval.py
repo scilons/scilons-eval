@@ -171,26 +171,10 @@ class ModelEval:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-t", 
-        "--task", 
-        type=str, 
-        help="Specify the task name")
-    parser.add_argument(
-        "-m", "--model", type=str, help="Specify the model name from huggingface"
-    )
-    parser.add_argument(
-        "-k",
-        "--tokenizer",
-        type=str,
-        help="Specify the tokenizer name from huggingface",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        type=str,
-        help="Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)",
-    )
+    parser.add_argument("-t", "--task", type=str, help="Specify the task name")
+    parser.add_argument("-m", "--model", type=str, help="Specify the model name from huggingface")
+    parser.add_argument("-k", "--tokenizer", type=str, help="Specify the tokenizer name from huggingface")
+    parser.add_argument("-d", "--data", type=str, help="Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)")
 
     args = parser.parse_args()
 

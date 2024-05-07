@@ -74,13 +74,15 @@ def prepare_input_ner(tokenized_data, tokenizer, label_map, device):
     max_seq_length = max(len(tokens) for tokens, _ in tokenized_data)
 
     for tokens, entity_labels in tokenized_data:
-        encoded_dict = tokenizer(
-            tokens,
-            max_length=max_seq_length,
-            pad_to_max_length=True,
-            truncation=True,
-            return_tensors="pt",
-        )
+        joined_text = " ".join(tokens)
+        encoded_dict = tokenizer.encode_plus(joined_text,
+                                             add_special_tokens=True,
+                                             max_length=max_seq_length, 
+                                             pad_to_max_length=True, 
+                                             truncation=True, 
+                                             return_attention_mask=True,
+                                             return_token_type_ids=True,
+                                             return_tensors='pt')
         token_ids.append(encoded_dict["input_ids"])
         attention_masks.append(encoded_dict["attention_mask"])
         token_type_ids.append(encoded_dict["token_type_ids"])
