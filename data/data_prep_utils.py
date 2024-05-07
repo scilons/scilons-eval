@@ -172,7 +172,7 @@ def extract_texts_labels_rel_cls(file_path):
                 print(f"Error decoding JSON from line: {line}")
                 print(error)
 
-    return texts
+    return texts, labels
 
 
 def tokenize_function(texts, tokenizer):
