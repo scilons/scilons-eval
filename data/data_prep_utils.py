@@ -77,8 +77,8 @@ def prepare_input_ner(tokenized_data, tokenizer, label_map, device):
         joined_text = " ".join(tokens)
         encoded_dict = tokenizer.encode_plus(joined_text,
                                              add_special_tokens=True,
-                                             max_length=max_seq_length, 
-                                             pad_to_max_length=True, 
+                                             max_length=max_seq_length,
+                                             padding='max_length',
                                              truncation=True, 
                                              return_attention_mask=True,
                                              return_token_type_ids=True,
