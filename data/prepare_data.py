@@ -37,13 +37,13 @@ class DatasetPrep:
         data_types = ["train", "dev", "test"]
 
         if self.task == "ner" or self.task == "pico":
-            labels_list = self._get_labels_list()
-            labels_mapper = {label: i for i, label in enumerate(set(labels_list))}
+            labels_set = self._get_labels_list()
         elif self.task == "rel" or self.task == "cls":
             file_paths = [dataset + ".txt" for dataset in data_types]
             file_paths = [os.path.join(self.data_path, path) for path in file_paths]
             labels_set = collect_labels_rel_cls(file_paths)
-            labels_mapper = {label: i for i, label in enumerate(labels_set)}
+        
+        labels_mapper = {label: i for i, label in enumerate(labels_set)}
 
         dataset_dict = DatasetDict()
 
