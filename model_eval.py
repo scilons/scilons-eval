@@ -160,8 +160,8 @@ class ModelEval:
             micro_f1 = f1_score(true_labels, predictions, average="micro")
             macro_f1 = f1_score(true_labels, predictions, average="macro")
 
-             print("Micro F1 score (token-level): ", micro_f1)
-             print("Macro F1 score (sentence-level): ", macro_f1)
+            print("Micro F1 score (token-level): ", micro_f1)
+            print("Macro F1 score (sentence-level): ", macro_f1)
 
         # Placeholder for DEP code
         elif self.task == 'dep':
