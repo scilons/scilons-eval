@@ -40,7 +40,7 @@ class DatasetPrep:
         data_paths = [self.data_path + "/" + dataset + ".txt" for dataset in data_types]
         
         if self.task == "ner" or self.task == "pico":
-            labels_set = self.get_labels_ner_pico(data_paths)
+            labels_set = self._get_labels_ner_pico(data_paths)
         elif self.task == "rel" or self.task == "cls":
             labels_set = get_labels_rel_cls(data_paths)
 
@@ -89,11 +89,14 @@ class DatasetPrep:
 
         return dataset_dict, labels_mapper
 
-    def _get_labels_list(self):
+    def _get_labels_ner_pico(self, file_paths):
+    
         if self.task == "ner":
-            sentences = read_txt_file_ner(self.data_path + "/train.txt")
+            sentences = [read_txt_file_ner(file) for file in file_paths]
         elif self.task == "pico":
-            sentences = read_txt_file_pico(self.data_path + "/train.txt")
+            sentences = [read_txt_file_pico(file) for file in file_paths]
+
+        sentences = [item for row in sentences for item in row]
 
         tokenized_sentences = tokenize_data_ner(sentences, self.tokenizer)
         all_labels = extract_labels(tokenized_sentences)
