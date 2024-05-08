@@ -142,7 +142,7 @@ def extract_spans(labels, labels_mapper):
     return spans
 
 
-def collect_labels_rel_cls(file_paths):
+def get_labels_rel_cls(file_paths):
     labels = set()
 
     for file_path in file_paths:
