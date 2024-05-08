@@ -128,7 +128,7 @@ class ModelEval:
 
             macro_f1_score = sum(macro_f1_scores) / len(macro_f1_scores)
 
-            return macro_f1_score
+            print("Macro F1 score (span-level): ", macro_f1_score)
 
         # PICO, REL, and CLS are evaluated based on sample-level (either token or sentence) macro-F1
         elif self.task == "pico" or self.task == "rel" or self.task == "cls":
@@ -157,18 +157,12 @@ class ModelEval:
                     predictions.append(predicted_labels)
                     true_labels.append(labels)
 
-            directories = self.data_path.split(os.path.sep)
-            dataset_name = directories[-1]
-
-            # ChemProt is evaluated using Micro-F1
-            if dataset_name == 'chemprot':
-                micro_f1 = f1_score(true_labels, predictions, average="micro")
-                return micro_f1
-
-            # Compute metrics
+            micro_f1 = f1_score(true_labels, predictions, average="micro")
             macro_f1 = f1_score(true_labels, predictions, average="macro")
-            return macro_f1
-        
+
+             print("Micro F1 score (token-level): ", micro_f1)
+             print("Macro F1 score (sentence-level): ", macro_f1)
+
         # Placeholder for DEP code
         elif self.task == 'dep':
             return 0
@@ -198,14 +192,7 @@ def main():
         device=device,
     )
 
-    eval_score = model_eval.evaluate_model()
-
-    if task == "ner":
-        print("Macro F1 score (span-level): ", eval_score)
-    elif task == "pico":
-        print("Macro F1 score (token-level): ", eval_score)
-    elif task == "rel" or task == "cls":
-         print("Macro F1 score (sentence-level): ", eval_score)
+    model_eval.evaluate_model()
 
 if __name__ == "__main__":
     main()
