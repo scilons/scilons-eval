@@ -43,7 +43,7 @@ class ModelEval:
             )
 
         training_args = TrainingArguments(
-            output_dir=self.hf_args.output_dir
+            output_dir=self.hf_args.output_dir,
             num_train_epochs=self.hf_args.num_train_epochs,
             per_device_train_batch_size=self.hf_args.per_device_train_batch_size,
             report_to=self.hf_args.report_to,
