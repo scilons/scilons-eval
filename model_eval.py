@@ -15,12 +15,13 @@ import os
 
 
 class ModelEval:
-    def __init__(self, task, model_name, tokenizer_name, data_path, device):
+    def __init__(self, task, model_name, tokenizer_name, data_path, device, hf_args):
         self.task = task
         self.model_name = model_name
         self.tokenizer_name = tokenizer_name
         self.data_path = data_path
         self.device = device
+        self.hf_args = hf_args
 
     def train_model(self):
         tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
@@ -42,14 +43,14 @@ class ModelEval:
             )
 
         training_args = TrainingArguments(
-            output_dir="./results",
-            num_train_epochs=3,
-            per_device_train_batch_size=8,
-            report_to="wandb",
-            logging_steps=100,
-            save_steps=500,
-            evaluation_strategy="steps",
-            eval_steps=500,
+            output_dir=self.hf_args.output_dir
+            num_train_epochs=self.hf_args.num_train_epochs,
+            per_device_train_batch_size=self.hf_args.per_device_train_batch_size,
+            report_to=self.hf_args.report_to,
+            logging_steps=self.hf_args.logging_steps,
+            save_steps=self.hf_args.save_steps,
+            evaluation_strategy=self.hf_args.evaluation_strategy,
+            eval_steps=self.hf_args.eval_steps,
         )
 
         trainer = Trainer(
@@ -170,10 +171,10 @@ class ModelEval:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task", type=str, help="Specify the task name")
-    parser.add_argument("-m", "--model", type=str, help="Specify the model name from huggingface")
-    parser.add_argument("-k", "--tokenizer", type=str, help="Specify the tokenizer name from huggingface")
-    parser.add_argument("-d", "--data", type=str, help="Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)")
+    parser.add_argument("-t", "--task", type=str, required=True, help="Specify the task name")
+    parser.add_argument("-m", "--model", type=str, required=True, help="Specify the model name from huggingface")
+    parser.add_argument("-k", "--tokenizer", type=str, required=True, help="Specify the tokenizer name from huggingface")
+    parser.add_argument("-d", "--data", type=str, required=True, help="Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)")
 
     args = parser.parse_args()
 
@@ -181,6 +182,19 @@ def main():
     model_name = args.model
     tokenizer_name = args.tokenizer
     data_path = args.data
+
+    hf_parser = argparse.ArgumentParser(description="Hugging Face Transformers Training Script")
+    TrainingArguments.add_argparse_args(parser)
+    # Add TrainingArguments with custom defaults
+    parser.add_argument('--output_dir', type=str, default='./results', help='The output directory where the model predictions and checkpoints will be written.')
+    parser.add_argument('--num_train_epochs', type=int, default=3, help='Total number of training epochs to perform.')
+    parser.add_argument('--per_device_train_batch_size', type=int, default=8, help='Batch size per GPU/TPU core/CPU for training.')
+    parser.add_argument('--save_steps', type=int, default=500, help='Save checkpoint every X updates steps.')
+    parser.add_argument('--logging_dir', type=str, default='./logs', help='Tensorboard log directory.')
+    parser.add_argument('--logging_steps', type=int, default=500, help='Log every X updates steps.')
+    parser.add_argument('--evaluation_strategy', type=str, default='steps', choices=['no', 'steps', 'epoch'], help='Evaluation strategy to use.')
+    parser.add_argument('--eval_steps', type=int, default=500, help='Evaluate on dev set every X steps.')
+    hf_args = hf_parser.parse_args()
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -190,6 +204,7 @@ def main():
         tokenizer_name=tokenizer_name,
         data_path=data_path,
         device=device,
+        hf_args = hf_args
     )
 
     model_eval.evaluate_model()
