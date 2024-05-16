@@ -4,17 +4,20 @@ A framework for evaluating HuggingFace models on specific tasks by fine-tuning o
 
 ## Running script
 
-In order to get the evaluation result, run the ```model_eval.py``` script with the following arguments:
+In order to get the evaluation result, run the ```model_eval.py``` script with the following required arguments:
 
 
-* ```-t``` or``` --task```: the task at hand, chosen from a specific list (see below).
+* ``` --task```: the task at hand, chosen from a specific list (see below).
   
-* ```-m``` or ```--model```: the model name as written on HuggingFace.
+* ```--model```: the model name as written on HuggingFace.
 
-* ```-k``` or ```--tokenizer```: the tokenizer name as written on HuggingFace.
+* ```--tokenizer```: the tokenizer name as written on HuggingFace.
 
-* ```-d``` or ```--data```: the path to the data folder that contains train.txt, dev.txt, and test.txt.
+* ```--data```: the path to the data folder that contains train.txt, dev.txt, and test.txt.
 
+* ```output_dir```: the directory to save the model and its results.
+
+In addition, all arguments for [HuggingFace's TrainingArgument](https://huggingface.co/docs/transformers/en/main_classes/trainer#transformers.TrainingArguments) class can be given, otherwise default values will be used.
 
 ## Available tasks
 
