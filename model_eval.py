@@ -125,15 +125,16 @@ class ModelEval:
                     if span not in predicted_spans_by_type[span_type]
                 )
 
-                precision = true_positives / (true_positives + false_positives + 1e-9)
-                recall = true_positives / (true_positives + false_negatives + 1e-9)
-                f1 = 2 * (precision * recall) / (precision + recall + 1e-9)
+                precision = true_positives / (true_positives + false_positives)
+                recall = true_positives / (true_positives + false_negatives)
+                f1 = 2 * (precision * recall) / (precision + recall)
 
                 macro_f1_scores.append(f1)
 
             macro_f1_score = sum(macro_f1_scores) / len(macro_f1_scores)
 
             print("Macro F1 score (span-level): ", macro_f1_score)
+
 
         # PICO, REL, and CLS are evaluated based on sample-level (either token or sentence) macro-F1
         elif self.task == "pico" or self.task == "rel" or self.task == "cls":
@@ -188,32 +189,9 @@ class CustomArguments:
     )
 
 def main():
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--task", type=str, required=True, help="Specify the task name")
-    parser.add_argument("-m", "--model", type=str, required=True, help="Specify the model name from huggingface")
-    parser.add_argument("-k", "--tokenizer", type=str, required=True, help="Specify the tokenizer name from huggingface")
-    parser.add_argument("-d", "--data", type=str, required=True, help="Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)")
-    # Add TrainingArguments with custom defaults
-    parser.add_argument('--output_dir', type=str, default='./results',
-                        help='The output directory where the model predictions and checkpoints will be written.')
-    parser.add_argument('--num_train_epochs', type=int, default=3, help='Total number of training epochs to perform.')
-    parser.add_argument('--per_device_train_batch_size', type=int, default=8,
-                        help='Batch size per GPU/TPU core/CPU for training.')
-    parser.add_argument('--report_to', type=str, default='wandb')
-    parser.add_argument('--save_steps', type=int, default=500, help='Save checkpoint every X updates steps.')
-    parser.add_argument('--logging_dir', type=str, default='./logs', help='Tensorboard log directory.')
-    parser.add_argument('--logging_steps', type=int, default=500, help='Log every X updates steps.')
-    parser.add_argument('--evaluation_strategy', type=str, default='steps', choices=['no', 'steps', 'epoch'],
-                        help='Evaluation strategy to use.')
-    parser.add_argument('--eval_steps', type=int, default=500, help='Evaluate on dev set every X steps.')
-    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Evaluate on dev set every X steps.')
-    """
 
     parser = HfArgumentParser((TrainingArguments, CustomArguments))
     training_args, custom_args = parser.parse_args_into_dataclasses()
-
-    #args = parser.parse_args()
 
     task = custom_args.task
     model_name = custom_args.model
