@@ -54,15 +54,31 @@ All datasets are available on the [SciBERT GitHub repository](https://github.com
 
 | Field | Task | Dataset      | Model Name                       | Metric                 | Result  |
 |-------|------|--------------|----------------------------------|------------------------|---------|
-| Bio   | NER  | BC5CDR       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.97407 |
-|       |      | JNLPBA       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.95741 |
-|       |      | NCBI-disease | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.92645 |
-|       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.78952 |
+| Bio   | NER  | BC5CDR       | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.94378 |
+|       |      | JNLPBA       | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.93917 |
+|       |      | NCBI-disease | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.88986 |
+|       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.78838 |
+|       |      |              |                                   | Micro F1 (token-level) | 0.97080 |
 |       | DEP  | GENIA-LAS    |                                  |                        |         |
 |       |      | GENIA-UAS    |                                  |                        |         |
-|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Micro F1 (sentence-level)| 0.83713|
-| CS    | NER  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (span-level)  | 0.75601 |
-|       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.82715|
-|       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.71327|
-| Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.73595|
-|       | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85118|
+|       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.57377|
+|       |       |             |                                  | Micro F1 (sentence-level)| 0.84607|
+| CS    | NER  | SciERC       | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.62328 |
+|       | REL  | SciERC       | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.78592|
+|       |       |              |                                 | Micro F1 (sentence-level)| 0.86242|
+|       | CLS  | ACL-ARC      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.59925|
+|       |       |             |                                  | Micro F1 (sentence-level)| 0.76978|
+| Multi | CLS  | Paper Field  | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.74535|
+|        |     |              |                                  | Micro F1 (sentence-level)| 0.74602|
+|       | CLS  | SciCite      | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.85473|
+|       |      |              |                                  | Micro F1 (sentence-level)| 0.86674|
+
+
+All results above were trained using the following hyperparameters: 
+* Number of epochs: 4
+* Batch size: 32
+* Learning rate: 2e-5
+
+All other hyperparameters are the default TrainingArguments values. 
+
+NER models were trained using the cased SciBERT variant to match the results resulted in the SciBERT paper, all other tasks were trained using the uncases model variant. 
