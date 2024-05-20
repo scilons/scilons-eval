@@ -2,6 +2,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import os
 import json
+from typing import Tuple
 
 
 def read_txt_file_ner(file_path):
@@ -142,7 +143,8 @@ def extract_spans(labels, labels_mapper):
     return spans
 
 
-def get_labels_rel_cls(file_paths):
+def get_labels_rel_cls(file_paths: str) -> set:
+    
     labels = set()
 
     for file_path in file_paths:
@@ -157,7 +159,8 @@ def get_labels_rel_cls(file_paths):
     return labels
 
 
-def extract_texts_labels_rel_cls(file_path):
+def extract_texts_labels_rel_cls(file_path: str) -> Tuple:
+
     texts = []
     labels = []
 
@@ -175,13 +178,23 @@ def extract_texts_labels_rel_cls(file_path):
     return texts, labels
 
 
-def tokenize_function(texts, tokenizer):
+def tokenize_function(texts: list, tokenizer) -> dict:
     return tokenizer(
         texts, truncation=True, max_length=512, return_tensors="pt", padding=True
     )
 
 
-def prepare_input_rel_cls(tokenized_sentences, labels_mapper, labels, device):
+def prepare_input_rel_cls(tokenized_sentences: dict, labels_mapper: dict, labels: list, device) -> Tuple:
+    """
+    Prepares tokenized sentences and encodes labels.
+    Args:
+        tokenized_sentences (dict): A dictionary with input ids, attention mask, and token type ids.
+        labels_mapper (dict): A dictionary with labels as keys and the corresponding numbers as values.
+        labels (list): List of labels to encode.
+        device: Torch device.
+    Returns:
+        Tuple of token ids, attention masks, token type ids, and encoded labels.
+    """
 
     token_ids = tokenized_sentences["input_ids"].to(device)
     attention_masks = tokenized_sentences["attention_mask"].to(device)
