@@ -1,4 +1,4 @@
-from data.data_prep_utils import tokenize_function
+from data.data_prep_utils import tokenize_function, prepare_input_rel_cls
 from transformers import AutoTokenizer
 import torch
 
@@ -16,16 +16,14 @@ def test_prepare_input_rel_cls():
 
     labels = ["USED-FOR", "FEATURE-OF"]
     labels_set = set(labels)
-
     labels_mapper = {label: i for i, label in enumerate(labels_set)}
 
-    token_ids = tokenized_texts["input_ids"].to(device)
-    attention_masks = tokenized_texts["attention_mask"].to(device)
-    token_type_ids = tokenized_texts["token_type_ids"].to(device)
-    labels_encoded = [labels_mapper[label] for label in labels]
+    token_ids, attention_masks, token_type_ids, labels = prepare_input_rel_cls(
+        tokenized_texts, labels_mapper, labels, device
+    )
 
     assert torch.is_tensor(token_ids)
     assert torch.is_tensor(attention_masks)
     assert torch.is_tensor(token_type_ids)
-    assert isinstance(labels_encoded, list)
-    assert labels_encoded == [0, 1]
+    assert isinstance(labels, list)
+    assert labels == [0, 1]
