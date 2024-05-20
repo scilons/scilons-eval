@@ -178,17 +178,17 @@ def extract_texts_labels_rel_cls(file_path: str) -> Tuple:
     return texts, labels
 
 
-def tokenize_function(texts: list, tokenizer) -> dict:
+def tokenize_function(texts: list, tokenizer):
     return tokenizer(
         texts, truncation=True, max_length=512, return_tensors="pt", padding=True
     )
 
 
-def prepare_input_rel_cls(tokenized_sentences: dict, labels_mapper: dict, labels: list, device) -> Tuple:
+def prepare_input_rel_cls(tokenized_sentences, labels_mapper: dict, labels: list, device) -> Tuple:
     """
     Prepares tokenized sentences and encodes labels.
     Args:
-        tokenized_sentences (dict): A dictionary with input ids, attention mask, and token type ids.
+        tokenized_sentences: Input ids, attention mask, and token type ids.
         labels_mapper (dict): A dictionary with labels as keys and the corresponding numbers as values.
         labels (list): List of labels to encode.
         device: Torch device.
