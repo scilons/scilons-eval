@@ -2,7 +2,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import os
 import json
-from typing import Tuple
+from typing import List, Tuple
 
 
 def read_txt_file_ner(file_path):
@@ -143,7 +143,7 @@ def extract_spans(labels, labels_mapper):
     return spans
 
 
-def get_labels_rel_cls(file_paths: str) -> set:
+def get_labels_rel_cls(file_paths: List[str]) -> set:
     
     labels = set()
 
