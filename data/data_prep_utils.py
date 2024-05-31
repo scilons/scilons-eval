@@ -65,42 +65,6 @@ def tokenize_data_ner(sentences, tokenizer):
         tokenized_sentences.append((tokens, labels))
     return tokenized_sentences
 
-
-def prepare_input_ner(tokenized_data, tokenizer, label_map, device):
-    token_ids = []
-    attention_masks = []
-    token_type_ids = []
-    labels = []
-
-    max_seq_length = max(len(tokens) for tokens, _ in tokenized_data)
-
-    for tokens, entity_labels in tokenized_data:
-        joined_text = " ".join(tokens)
-        encoded_dict = tokenizer.encode_plus(joined_text,
-                                             add_special_tokens=True,
-                                             max_length=max_seq_length,
-                                             padding='max_length',
-                                             truncation=True, 
-                                             return_attention_mask=True,
-                                             return_token_type_ids=True,
-                                             return_tensors='pt')
-        token_ids.append(encoded_dict["input_ids"])
-        attention_masks.append(encoded_dict["attention_mask"])
-        token_type_ids.append(encoded_dict["token_type_ids"])
-        labels.append(torch.tensor([label_map[label] for label in entity_labels]))
-
-    token_ids = torch.cat(token_ids, dim=0)
-    token_ids.to(device)
-    attention_masks = torch.cat(attention_masks, dim=0)
-    attention_masks.to(device)
-    token_type_ids = torch.cat(token_type_ids, dim=0)
-    token_type_ids.to(device)
-    labels = pad_sequence(labels, batch_first=True, padding_value=label_map["O"])
-    labels.to(device)
-
-    return token_ids, attention_masks, token_type_ids, labels
-
-
 def extract_labels(tokenized_sentences):
     all_labels = []
     for tokens, labels in tokenized_sentences:
@@ -176,12 +140,6 @@ def extract_texts_labels_rel_cls(file_path: str) -> Tuple:
                 print(error)
 
     return texts, labels
-
-
-def tokenize_function(texts: list, tokenizer):
-    return tokenizer(
-        texts, truncation=True, max_length=512, return_tensors="pt", padding=True
-    )
 
 
 def prepare_input_rel_cls(tokenized_sentences, labels_mapper: dict, labels: list, device) -> Tuple:

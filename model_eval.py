@@ -18,31 +18,34 @@ from typing import Optional
 
 
 class ModelEval:
-    def __init__(self, task, model_name, tokenizer_name, data_path, device, hf_args):
+    def __init__(self, task, model_name, tokenizer_name, data_path, device, hf_args, hf_token, max_length):
         self.task = task
         self.model_name = model_name
         self.tokenizer_name = tokenizer_name
         self.data_path = data_path
         self.device = device
         self.hf_args = hf_args
+        self.hf_token = hf_token
+        self.max_length = max_length
 
     def train_model(self):
-        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
+        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name, token=self.hf_token, trust_remote_code=True)
         dataset_prep = DatasetPrep(
             task=self.task,
             data_path=self.data_path,
             tokenizer=tokenizer,
             device=self.device,
+            max_length = self.max_length
         )
         dataset_dict, labels_mapper = dataset_prep.run()
 
         if self.task == "ner" or self.task == "pico":
             model = AutoModelForTokenClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper)
+                self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
             )
         elif self.task == "rel" or self.task == "cls":
             model = AutoModelForSequenceClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper)
+                self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
             )
 
         training_args = TrainingArguments(
@@ -191,6 +194,12 @@ class CustomArguments:
     tokenizer: str = field(
         metadata={"help": "Specify the tokenizer name from HuggingFace"}
     )
+    hf_token: str = field(
+        metadata={"help": "Specify your HuggingFace token to access a closed modek."}
+    )
+    max_length: int = field(
+        metadata={"help": "Specify the maximum sequence length of the model to use when tokenizing."}
+    )
     data: str = field(
         metadata={"help": "Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)"}
     )
@@ -203,6 +212,8 @@ def main():
     task = custom_args.task
     model_name = custom_args.model
     tokenizer_name = custom_args.tokenizer
+    hf_token = custom_args.hf_token
+    max_length = custom_args.max_length
     data_path = custom_args.data
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -213,7 +224,9 @@ def main():
         tokenizer_name=tokenizer_name,
         data_path=data_path,
         device=device,
-        hf_args = training_args
+        hf_args = training_args,
+        hf_token = hf_token, 
+        max_length = max_length
     )
 
     model_eval.evaluate_model()

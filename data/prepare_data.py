@@ -6,18 +6,16 @@ from data.data_prep_utils import (
     read_txt_file_ner,
     read_txt_file_pico,
     tokenize_data_ner,
-    prepare_input_ner,
     extract_labels,
     get_labels_rel_cls,
     extract_texts_labels_rel_cls,
-    tokenize_function,
-    prepare_input_rel_cls,
+    prepare_input_rel_cls
 )
 from typing import Dict
 import os
 
 class DatasetPrep:
-    def __init__(self, task, data_path, tokenizer, device) -> None:
+    def __init__(self, task, data_path, tokenizer, device, max_length) -> None:
         """
         task: should be 'ner', ....
         data_path: str that describes the path where the train.txt, dev.txt, and test.txt datasets are
@@ -28,6 +26,7 @@ class DatasetPrep:
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.device = device
+        self.max_length = max_length
 
     def run(self) -> (DatasetDict, Dict):
         """
@@ -60,12 +59,12 @@ class DatasetPrep:
 
             elif self.task == "rel" or self.task == "cls":
                 sentences, categor_labels = extract_texts_labels_rel_cls(path)
-                tokenized_sentences = tokenize_function(sentences, self.tokenizer)
+                tokenized_sentences = self.tokenize_function(sentences)
 
             # Get tokenized input based on task
             if self.task == "ner" or self.task == "pico":
-                token_ids, attention_masks, token_type_ids, labels = prepare_input_ner(
-                    tokenized_sentences, self.tokenizer, labels_mapper, self.device
+                token_ids, attention_masks, token_type_ids, labels = self.prepare_input_ner(
+                    tokenized_sentences, labels_mapper
                 )
             elif self.task == "rel" or self.task == "cls":
                 token_ids, attention_masks, token_type_ids, labels = prepare_input_rel_cls(
@@ -103,3 +102,47 @@ class DatasetPrep:
         labels_list = list(set(all_labels))
 
         return labels_list
+
+    def tokenize_function(self, texts: list):
+        
+        return self.tokenizer(
+            texts, 
+            truncation=True, 
+            max_length=self.max_length, 
+            return_tensors="pt", 
+            padding=True,
+            return_token_type_ids=True
+        )
+
+    def prepare_input_ner(self, tokenized_data, label_map):
+        
+        token_ids = []
+        attention_masks = []
+        token_type_ids = []
+        labels = []
+        
+        for tokens, entity_labels in tokenized_data:
+            joined_text = " ".join(tokens)
+            encoded_dict = self.tokenizer.encode_plus(joined_text,
+                                                 add_special_tokens=True,
+                                                 max_length=self.max_length,
+                                                 padding='max_length',
+                                                 truncation=True, 
+                                                 return_attention_mask=True,
+                                                 return_token_type_ids=True,
+                                                 return_tensors='pt')
+            token_ids.append(encoded_dict["input_ids"])
+            attention_masks.append(encoded_dict["attention_mask"])
+            token_type_ids.append(encoded_dict["token_type_ids"])
+            labels.append(torch.tensor([label_map[label] for label in entity_labels][:self.max_length]))
+            
+        token_ids = torch.cat(token_ids, dim=0)
+        token_ids.to(self.device)
+        attention_masks = torch.cat(attention_masks, dim=0)
+        attention_masks.to(self.device)
+        token_type_ids = torch.cat(token_type_ids, dim=0)
+        token_type_ids.to(self.device)
+        labels = pad_sequence(labels, batch_first=True, padding_value=label_map["O"])
+        labels.to(self.device)
+        
+        return token_ids, attention_masks, token_type_ids, labels
