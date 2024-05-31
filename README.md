@@ -15,6 +15,10 @@ In order to get the evaluation result, run the ```model_eval.py``` script with t
 
 * ```--data```: the path to the data folder that contains train.txt, dev.txt, and test.txt.
 
+* ``--hf_token```: your access token from HuggingFace.
+
+* ``--max_length```: max sequence length of the model for tokenization.
+
 * ```--output_dir```: the directory to save the model and its results.
 
 In addition, all arguments for [HuggingFace's TrainingArgument](https://huggingface.co/docs/transformers/en/main_classes/trainer#transformers.TrainingArguments) class can be given, otherwise default values will be used.
@@ -81,4 +85,4 @@ All results above were trained using the following hyperparameters:
 
 All other hyperparameters are the default TrainingArguments values. 
 
-NER models were trained using the cased SciBERT variant to match the results resulted in the SciBERT paper, all other tasks were trained using the uncases model variant. 
+NER models were trained using the cased SciBERT variant to match the results resulted in the SciBERT paper, all other tasks were trained using the uncased model variant. 
