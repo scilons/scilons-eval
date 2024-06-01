@@ -128,9 +128,9 @@ class ModelEval:
                     if span not in predicted_spans_by_type[span_type]
                 )
 
-                precision = true_positives / (true_positives + false_positives)
-                recall = true_positives / (true_positives + false_negatives)
-                f1 = 2 * (precision * recall) / (precision + recall)
+                precision = true_positives / (true_positives + false_positives + 1e-9)
+                recall = true_positives / (true_positives + false_negatives + 1e-9)
+                f1 = 2 * (precision * recall) / (precision + recall + 1e-9)
 
                 macro_f1_scores.append(f1)
 
