@@ -134,10 +134,8 @@ class ModelEval:
 
                 macro_f1_scores.append(f1)
 
-            macro_f1_score = sum(macro_f1_scores) / len(macro_f1_scores)
-
-            print("Macro F1 score (span-level): ", macro_f1_score)
-
+            macro_f1 = sum(macro_f1_scores) / len(macro_f1_scores)
+            micro_f1 = None
 
         # PICO, REL, and CLS are evaluated based on sample-level (either token or sentence) macro-F1
         elif self.task == "pico" or self.task == "rel" or self.task == "cls":
@@ -169,19 +167,10 @@ class ModelEval:
             micro_f1 = f1_score(true_labels, predictions, average="micro")
             macro_f1 = f1_score(true_labels, predictions, average="macro")
 
-            if self.task == 'pico':
-                print("Micro F1 score (token-level): ", micro_f1)
-                print("Macro F1 score (token-level): ", macro_f1)
-
-            else:
-                print("Micro F1 score (sentence-level): ", micro_f1)
-                print("Macro F1 score (sentence-level): ", macro_f1)
-                
-
         # Placeholder for DEP code
-        elif self.task == 'dep':
-                print("Micro F1 score :")
-                print("Macro F1 score :")
+        #elif self.task == 'dep':
+
+        return micro_f1, macro_f1
 
 @dataclass
 class CustomArguments:
@@ -229,7 +218,17 @@ def main():
         max_length = max_length
     )
 
-    model_eval.evaluate_model()
+    micro_f1, macro_f1 = model_eval.evaluate_model()
 
+    if task == 'ner':
+        print("Macro F1 score (span-level): ", macro_f1_score)
+    elif task == 'pico':
+        print("Micro F1 score (token-level): ", micro_f1)
+        print("Macro F1 score (token-level): ", macro_f1)
+    elif task == 'rel' or task == 'cls':
+        print("Micro F1 score (sentence-level): ", micro_f1)
+        print("Macro F1 score (sentence-level): ", macro_f1)
+    
+        
 if __name__ == "__main__":
     main()
