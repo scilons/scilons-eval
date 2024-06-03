@@ -15,9 +15,9 @@ In order to get the evaluation result, run the ```model_eval.py``` script with t
 
 * ```--data```: the path to the data folder that contains train.txt, dev.txt, and test.txt.
 
-* ``--hf_token```: your access token from HuggingFace.
+* ```--hf_token```: your access token from HuggingFace.
 
-* ``--max_length```: max sequence length of the model for tokenization.
+* ```--max_length```: max sequence length of the model for tokenization.
 
 * ```--output_dir```: the directory to save the model and its results.
 
