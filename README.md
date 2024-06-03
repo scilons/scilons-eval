@@ -4,7 +4,7 @@ A framework for evaluating HuggingFace models on specific tasks by fine-tuning o
 
 ## Running script
 
-In order to get the evaluation result, run the ```model_eval.py``` script with the following required arguments:
+#### To get the evaluation result for one specific task and dataset, run the ```model_eval.py``` script with the following required arguments:
 
 
 * ``` --task```: the task at hand, chosen from a specific list (see below).
@@ -21,7 +21,24 @@ In order to get the evaluation result, run the ```model_eval.py``` script with t
 
 * ```--output_dir```: the directory to save the model and its results.
 
+#### To get the evaluation result for all tasks on all available dataset (see below), run the ```evaluate_all_tasks.py``` script. The code will save a .csv file with the results in the directory from which you ran the script. The following arguments are required:
+
+* ```--model```: the model name as written on HuggingFace.
+
+* ```--tokenizer```: the tokenizer name as written on HuggingFace.
+
+* ```--data```: the path to the folder that contains all required datasets (such as https://github.com/allenai/scibert/tree/master/data).
+
+* ```--hf_token```: your access token from HuggingFace.
+
+* ```--max_length```: max sequence length of the model for tokenization.
+
+* ```--output_dir```: the directory to save the model and its results.
+
+
 In addition, all arguments for [HuggingFace's TrainingArgument](https://huggingface.co/docs/transformers/en/main_classes/trainer#transformers.TrainingArguments) class can be given, otherwise default values will be used.
+
+
 
 ## Available tasks
 
