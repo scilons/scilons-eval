@@ -160,3 +160,128 @@ def prepare_input_rel_cls(tokenized_sentences, labels_mapper: dict, labels: list
     labels_encoded = [labels_mapper[label] for label in labels]
 
     return token_ids, attention_masks, token_type_ids, labels_encoded
+
+def extract_dep_data(file_path: str) -> List[Tuple[str, str, str]]:
+    
+    with open(file_path, "r", encoding="utf-8") as file:
+        
+        lines = file.readlines()
+        sentences = []
+        sentence_tokens = []
+        
+        for line in lines:
+            if not line.strip():
+                if sentence_tokens:
+                    sentences.append(sentence_tokens)
+                    sentence_tokens = []
+            else:
+                idx, token, lemma, upos, xpos, _, head, dep_tag, _, _ =  line.strip().split("\t")
+                sentence_tokens.append((token, dep_tag, head))
+        if sentence_tokens:  
+            sentences.append(sentence_tokens)
+
+    return sentences 
+
+def get_labels_dep(file_paths: List[str]) -> set:
+        
+    labels_set = set()
+     
+    for file_path in file_paths: 
+        sentences = extract_dep_data(file_path)
+        labels = [element[1] for item in sentences for element in item]
+        for item in labels:
+            labels_set.add(item)
+
+    return labels_set
+
+def tokenize_data_dep(sentences: List, tokenizer) -> List:
+    
+    tokenized_sentences = []
+    
+    for sentence in sentences:
+        
+        tokens = []
+        labels = []
+        
+        for token, label, head in sentence:
+            tokenized_token = tokenizer.tokenize(token)
+            tokens.extend(tokenized_token)
+            labels.extend([label] * len(tokenized_token))
+  
+        tokenized_sentences.append((tokens, labels))
+    return tokenized_sentences
+
+def prepare_input_dep(tokenized_data: List, 
+                      tokenizer, 
+                      label_map: set, 
+                      device) -> Tuple:
+    
+    token_ids = []
+    attention_masks = []
+    token_type_ids = []
+    encoded_labels = []
+
+    max_seq_length = max(len(tokens) for tokens, _ in tokenized_data)
+    
+    for tokens, labels in tokenized_data:
+        joined_text = " ".join(tokens)
+        encoded_dict = tokenizer.encode_plus(joined_text,
+                                             add_special_tokens=True,
+                                             max_length=max_seq_length,
+                                             padding='max_length',
+                                             truncation=True, 
+                                             return_attention_mask=True,
+                                             return_token_type_ids=True,
+                                             return_tensors='pt')
+        
+        token_ids.append(encoded_dict["input_ids"])
+        attention_masks.append(encoded_dict["attention_mask"])
+        token_type_ids.append(encoded_dict["token_type_ids"])
+        mapped_labels = [label_map[label] for label in labels]
+        encoded_labels.append(torch.tensor(mapped_labels))
+
+    labels_padded = pad_sequence(encoded_labels, 
+                                 batch_first=True, 
+                                 padding_value = -100)
+    labels_padded.to(device)
+    token_ids = torch.cat(token_ids, dim=0)
+    token_ids.to(device)
+    attention_masks = torch.cat(attention_masks, dim=0)
+    attention_masks.to(device)
+    token_type_ids = torch.cat(token_type_ids, dim=0)
+    token_type_ids.to(device)
+
+    
+    return token_ids, attention_masks, token_type_ids, labels_padded
+
+
+def get_labels_heads(file_paths: List[str]) -> set:
+    
+    labels_set = set()
+     
+    for file_path in file_paths: 
+        sentences = extract_dep_data(file_path)
+        labels = [element[2] for item in sentences for element in item]
+        for item in labels:
+            labels_set.add(item)
+
+    return labels_set
+
+
+def tokenize_data_heads(sentences: List, tokenizer) -> list:
+    
+    tokenized_sentences = []
+    
+    for sentence in sentences:
+        
+        tokens = []
+        labels = []
+        
+        for token, label, head in sentence:
+            tokenized_token = tokenizer.tokenize(token)
+            tokens.extend(tokenized_token)
+            labels.extend([head] * len(tokenized_token))
+        tokenized_sentences.append((tokens, labels))
+
+    return tokenized_sentences
+

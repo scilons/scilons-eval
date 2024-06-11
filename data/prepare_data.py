@@ -9,7 +9,13 @@ from data.data_prep_utils import (
     extract_labels,
     get_labels_rel_cls,
     extract_texts_labels_rel_cls,
-    prepare_input_rel_cls
+    prepare_input_rel_cls,
+    extract_dep_data,
+    get_labels_dep,
+    tokenize_data_dep,
+    prepare_input_dep,
+    get_labels_heads,
+    tokenize_data_heads
 )
 from typing import Dict
 import os
@@ -42,7 +48,12 @@ class DatasetPrep:
             labels_set = self._get_labels_ner_pico(data_paths)
         elif self.task == "rel" or self.task == "cls":
             labels_set = get_labels_rel_cls(data_paths)
-
+        elif self.task == "dep":
+            labels_set_dep = get_labels_dep(data_paths)
+            labels_set_head = get_labels_heads(data_paths)
+            labels_mapper_dep = {label: i for i, label in enumerate(labels_set_dep)} 
+            labels_mapper_head = {label: i for i, label in enumerate(labels_set_head)} 
+    
         labels_mapper = {label: i for i, label in enumerate(labels_set)}
 
         dataset_dict = DatasetDict()
@@ -61,6 +72,11 @@ class DatasetPrep:
                 sentences, categor_labels = extract_texts_labels_rel_cls(path)
                 tokenized_sentences = self.tokenize_function(sentences)
 
+            elif self.task == "dep":
+                sentences = extract_dep_data(path)
+                tokenized_sentences_dep = tokenize_data_dep(sentences, self.tokenizer)
+                tokenized_sentences_heads = tokenize_data_heads(sentences, self.tokenizer)
+
             # Get tokenized input based on task
             if self.task == "ner" or self.task == "pico":
                 token_ids, attention_masks, token_type_ids, labels = self.prepare_input_ner(
@@ -70,8 +86,45 @@ class DatasetPrep:
                 token_ids, attention_masks, token_type_ids, labels = prepare_input_rel_cls(
                     tokenized_sentences, labels_mapper, categor_labels, self.device
                 )
-
+            elif self.task == "dep":
+                token_ids_dep, attention_masks_dep, token_type_ids_dep, labels_dep = prepare_input_dep(tokenized_sentences_dep, 
+                                                                                                       self.tokenizer, 
+                                                                                                       labels_mapper_dep,
+                                                                                                       self.device)                      
+                
+                token_ids_heads, attention_masks_heads, token_type_ids_heads, labels_heads = prepare_input_dep(tokenized_sentences_heads, 
+                                                                                                               self.tokenizer, 
+                                                                                                               labels_mapper_head,
+                                                                                                               self.device)
             # Create a Dataset object
+
+            directory = path.split(os.path.sep)
+            dataset_name = directory[-1]
+
+            if self.task == "dep":
+                dataset_inputs_dep = Dataset.from_dict(
+                    {
+                        "input_ids": token_ids_dep,
+                        "attention_mask": attention_masks_dep,
+                        "token_type_ids": token_type_ids_dep,
+                        "labels": labels_dep,
+                    }
+                )
+                dataset_inputs_heads = Dataset.from_dict(
+                    {
+                        "input_ids": token_ids_heads,
+                        "attention_mask": attention_masks_heads,
+                        "token_type_ids": token_type_ids_heads,
+                        "labels": labels_heads,
+                    }
+                )
+
+                dataset_dict["dep"] = dataset_inputs_dep
+                dataset_dict["heads"] = dataset_inputs_heads
+
+                dataset_dict[dataset_name[:-4]] = {"dep": dataset_inputs_dep, "heads": dataset_inputs_heads}
+
+
             dataset_inputs = Dataset.from_dict(
                 {
                     "input_ids": token_ids,
@@ -81,10 +134,10 @@ class DatasetPrep:
                 }
             )
 
-            directory = path.split(os.path.sep)
-            dataset_name = directory[-1]
-
             dataset_dict[dataset_name[:-4]] = dataset_inputs
+        
+        if self.task == "dep":
+            return dataset_dict, labels_mapper_dep, labels_mapper_head
 
         return dataset_dict, labels_mapper
 
