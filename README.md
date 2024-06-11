@@ -80,8 +80,8 @@ All datasets are available on the [SciBERT GitHub repository](https://github.com
 |       |      | NCBI-disease | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.88986 |
 |       | PICO | EBMNLP       | allenai/scibert_scivocab_uncased | Macro F1 (token-level) | 0.78838 |
 |       |      |              |                                   | Micro F1 (token-level) | 0.97080 |
-|       | DEP  | GENIA-LAS    |                                  |                        |         |
-|       |      | GENIA-UAS    |                                  |                        |         |
+|       | DEP  | GENIA-LAS    | allenai/scibert_scivocab_cased/allenai/scibert_scivocab_uncased    | LAS | 0.50660/0.68815|
+|       |      | GENIA-UAS    | allenai/scibert_scivocab_cased/allenai/scibert_scivocab_uncased    | UAS | 0.58671/0.73961|
 |       | REL  | ChemProt     | allenai/scibert_scivocab_uncased | Macro F1 (sentence-level)| 0.57377|
 |       |       |             |                                  | Micro F1 (sentence-level)| 0.84607|
 | CS    | NER  | SciERC       | allenai/scibert_scivocab_cased | Macro F1 (span-level)  | 0.62328 |
@@ -103,3 +103,5 @@ All results above were trained using the following hyperparameters:
 All other hyperparameters are the default TrainingArguments values. 
 
 NER models were trained using the cased SciBERT variant to match the results resulted in the SciBERT paper, all other tasks were trained using the uncased model variant. 
+
+Note: the DEP results are calculated without removing punctuation. 
