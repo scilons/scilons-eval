@@ -88,7 +88,7 @@ class ModelEval:
                 model=model_heads,
                 args=self.hf_args,
                 train_dataset=dataset_dict_heads["train"],
-                eval_dataset=dataset_dict_dep["dev"],
+                eval_dataset=dataset_dict_heads["dev"],
                 data_collator=data_collator
                 )
             
@@ -98,7 +98,7 @@ class ModelEval:
             trainer_heads.train()
             trainer_heads.save_model("results/models")
 
-            return model_dep, model_heads, dataset_dict, labels_mapper_dep, labels_mapper_head
+            return model_dep, model_heads, dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head
 
 
         trainer = Trainer(
@@ -118,26 +118,34 @@ class ModelEval:
         
         if self.task == "dep":
             
-            trained_model_dep, trained_model_heads, dataset_dict, labels_mapper_dep, labels_mapper_head = self.train_model()
+            (
+                trained_model_dep, 
+                trained_model_heads, 
+                dataset_dict_dep, 
+                dataset_dict_heads, 
+                labels_mapper_dep, 
+                labels_mapper_head
+            ) = self.train_model()
+            
             trained_model_dep.eval()
 
             reverse_label_map_dep = {v: k for k, v in labels_mapper_dep.items()}
             reverse_label_map_head = {v: k for k, v in labels_mapper_head.items()}
 
-            pred_dep_labels = collect_predictions_dep(dataset_dict["dep"]["test"], 
+            pred_dep_labels = collect_predictions_dep(dataset_dict_dep["test"], 
                                                       trained_model_dep, 
                                                       reverse_label_map_dep,
                                                       self.device)
 
-            gold_dep_labels = collect_gold_labels_dep(dataset_dict["dep"]["test"]["labels"],
+            gold_dep_labels = collect_gold_labels_dep(dataset_dict_dep["test"]["labels"],
                                                       reverse_label_map_dep)
 
-            pred_head_labels = collect_predictions_dep(dataset_dict["dep"]["test"], 
+            pred_head_labels = collect_predictions_dep(dataset_dict_heads["test"], 
                                                        trained_model_heads, 
                                                        reverse_label_map_head ,
                                                        self.device)
             
-            gold_head_labels =  collect_gold_labels_dep(dataset_dict["dep"]["test"]["labels"],
+            gold_head_labels =  collect_gold_labels_dep(dataset_dict_heads["test"]["labels"],
                                                         reverse_label_map_head)
             
             words_test_set = extract_dep_data(self.data_path + "/test.txt")
