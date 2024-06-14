@@ -87,15 +87,13 @@ class DatasetPrep:
                     tokenized_sentences, labels_mapper, categor_labels, self.device
                 )
             elif self.task == "dep":
-                token_ids_dep, attention_masks_dep, token_type_ids_dep, labels_dep = prepare_input_dep(tokenized_sentences_dep, 
-                                                                                                       self.tokenizer, 
-                                                                                                       labels_mapper_dep,
-                                                                                                       self.device)                      
+                token_ids_dep, attention_masks_dep, token_type_ids_dep, labels_dep = prepare_input_dep(
+                    tokenized_sentences_dep, self.tokenizer, labels_mapper_dep, self.device
+                )                      
                 
-                token_ids_heads, attention_masks_heads, token_type_ids_heads, labels_heads = prepare_input_dep(tokenized_sentences_heads, 
-                                                                                                               self.tokenizer, 
-                                                                                                               labels_mapper_head,
-                                                                                                               self.device)
+                token_ids_heads, attention_masks_heads, token_type_ids_heads, labels_heads = prepare_input_dep(
+                    tokenized_sentences_heads, self.tokenizer, labels_mapper_head, self.device
+                )
             # Create a Dataset object
 
             directory = path.split(os.path.sep)
@@ -123,6 +121,8 @@ class DatasetPrep:
                 dataset_dict["heads"] = dataset_inputs_heads
 
                 dataset_dict[dataset_name[:-4]] = {"dep": dataset_inputs_dep, "heads": dataset_inputs_heads}
+                
+                return dataset_dict, labels_mapper_dep, labels_mapper_head
 
 
             dataset_inputs = Dataset.from_dict(
@@ -135,9 +135,6 @@ class DatasetPrep:
             )
 
             dataset_dict[dataset_name[:-4]] = dataset_inputs
-        
-        if self.task == "dep":
-            return dataset_dict, labels_mapper_dep, labels_mapper_head
 
         return dataset_dict, labels_mapper
 

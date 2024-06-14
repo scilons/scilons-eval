@@ -8,7 +8,7 @@ from transformers import (
 )
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans, extract_dep_data
-from data.eva_model_utils import calculate_uas_las, collect_predictions_dep, collect_gold_labels_dep
+from dep_eval_utils import calculate_uas_las, collect_predictions_dep, collect_gold_labels_dep
 from sklearn.metrics import f1_score, precision_score, recall_score
 from collections import defaultdict
 import argparse
@@ -42,7 +42,8 @@ class ModelEval:
         if self.task == "dep":
             dataset_dict, labels_mapper_dep, labels_mapper_head = dataset_prep.run()
 
-        dataset_dict, labels_mapper = dataset_prep.run()
+        else:
+            dataset_dict, labels_mapper = dataset_prep.run()
 
         if self.task == "ner" or self.task == "pico":
             model = AutoModelForTokenClassification.from_pretrained(
@@ -93,6 +94,8 @@ class ModelEval:
             trainer_heads.train()
             trainer_heads.save_model("results/models")
 
+            return model_dep, model_heads, dataset_dict, labels_mapper_dep, labels_mapper_head
+
 
         trainer = Trainer(
             model=model,
@@ -105,13 +108,12 @@ class ModelEval:
 
         trainer.save_model("results/models")
 
-        if self.task == "dep":
-            return model_dep, model_heads, dataset_dict, labels_mapper_dep, labels_mapper_head
-    
         return model, dataset_dict, labels_mapper
 
     def evaluate_model(self):
+        
         if self.task == "dep":
+            
             trained_model_dep, trained_model_heads, dataset_dict, labels_mapper_dep, labels_mapper_head = self.train_model()
             trained_model_dep.eval()
 
@@ -134,7 +136,7 @@ class ModelEval:
             gold_head_labels =  collect_gold_labels_dep(dataset_dict["dep"]["test"]["labels"],
                                                         reverse_label_map_head)
             
-            words_test_set = extract_dep_data("data/genia/test.txt") # need to define the correct path
+            words_test_set = extract_dep_data(self.data_path + "/test.txt")
             words_test_set = [item[0] for sample in words_test_set for item in sample]
 
             uas, las = calculate_uas_las(words_test_set, 
@@ -142,6 +144,8 @@ class ModelEval:
                                          gold_dep_labels, 
                                          pred_head_labels, 
                                          pred_dep_labels)
+
+            return uas, las
 
         trained_model, dataset_dict, labels_mapper = self.train_model()
         trained_model.eval()
@@ -236,10 +240,7 @@ class ModelEval:
             micro_f1 = f1_score(true_labels, predictions, average="micro")
             macro_f1 = f1_score(true_labels, predictions, average="macro")
 
-        # Placeholder for DEP code
-        #elif self.task == 'dep':
-
-        return micro_f1, macro_f1, uas, las
+        return micro_f1, macro_f1
 
 @dataclass
 class CustomArguments:
@@ -287,7 +288,13 @@ def main():
         max_length = max_length
     )
 
-    micro_f1, macro_f1, uas, las = model_eval.evaluate_model()
+    if task == 'dep':
+        uas, las = model_eval.evaluate_model()
+        print("UAS score: ", uas)
+        print("LAS score: ", las)
+        
+    else:
+        micro_f1, macro_f1 = model_eval.evaluate_model()
 
     if task == 'ner':
         print("Macro F1 score (span-level): ", macro_f1)
@@ -297,8 +304,6 @@ def main():
     elif task == 'rel' or task == 'cls':
         print("Micro F1 score (sentence-level): ", micro_f1)
         print("Macro F1 score (sentence-level): ", macro_f1)
-    elif task == 'dep':
-        print(f'UAS score: {uas}, LAS score: {las}')
         
 if __name__ == "__main__":
     main()

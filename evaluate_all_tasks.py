@@ -59,13 +59,18 @@ def main():
         data_path + "/text_classification/citation_intent",
         data_path + "/text_classification/mag",
         data_path + "/text_classification/sci-cite"
-        ]
+        ], 
+    "dep": [
+        data_path + "/parsing/genia"
+    ]
     }
 
     tasks = []
     datasets = []
-    macro_f1_scores = []
-    micro_f1_scores = []
+    metrics1 = []
+    scores1 = []
+    metrics2 = []
+    scores2 = []
 
     for key, value in tasks_datasets_dict.items():
 
@@ -86,21 +91,32 @@ def main():
                 max_length = max_length
             )
             
-            micro_f1, macro_f1 = model_eval.evaluate_model()
+            score1, score2 = model_eval.evaluate_model()
 
             directories = data_path_value.split(os.path.sep)
             dataset_name = directories[-1]
 
+            if key == 'dep':
+                metric1 = 'uas'
+                metric2 = 'las'
+            else:
+                metric1 = 'micro F1'
+                metric2 = 'macro F1'
+
             tasks.append(key)
             datasets.append(dataset_name)
-            macro_f1_scores.append(macro_f1)
-            micro_f1_scores.append(micro_f1)
+            metrics1.append(metric1)
+            scores1.append(score1)
+            metrics2.append(metric2)
+            scores2.append(score2)
 
     df_dict = {
         'task' : tasks,
         'dataset': datasets,
-        'macro F1': macro_f1_scores, 
-        'micro F1': micro_f1_scores
+        'metric 1': metrics1,
+        'score 1': scores1,
+        'metric 2': metrics2, 
+        'score 2': scores2
     }
 
     results_df = pd.DataFrame(df_dict)
