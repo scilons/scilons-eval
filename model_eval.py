@@ -4,7 +4,8 @@ from transformers import (
     AutoModelForSequenceClassification,
     Trainer,
     TrainingArguments,
-    HfArgumentParser
+    HfArgumentParser,
+    DataCollatorForTokenClassification
 )
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans, extract_dep_data
@@ -40,7 +41,7 @@ class ModelEval:
         )
         
         if self.task == "dep":
-            dataset_dict, labels_mapper_dep, labels_mapper_head = dataset_prep.run()
+            dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head = dataset_prep.run()
 
         else:
             dataset_dict, labels_mapper = dataset_prep.run()
@@ -54,12 +55,13 @@ class ModelEval:
                 self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
             )
         elif self.task == "dep":
-            model_dep = AutoModelForSequenceClassification.from_pretrained(
+            model_dep = AutoModelForTokenClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper_dep), token=self.hf_token, trust_remote_code=True
             )
-            model_heads = AutoModelForSequenceClassification.from_pretrained(
+            model_heads = AutoModelForTokenClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper_head), token=self.hf_token, trust_remote_code=True
             )
+            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
 
         training_args = TrainingArguments(
             output_dir=self.hf_args.output_dir,
@@ -77,15 +79,17 @@ class ModelEval:
             trainer_dep = Trainer(
                 model=model_dep,
                 args=self.hf_args,
-                train_dataset=dataset_dict["dep"]["train"],
-                eval_dataset=dataset_dict["dep"]["dev"],
+                train_dataset=dataset_dict_dep["train"],
+                eval_dataset=dataset_dict_dep["dev"],
+                data_collator=data_collator
                 )
             
             trainer_heads = Trainer(
                 model=model_heads,
                 args=self.hf_args,
-                train_dataset=dataset_dict["heads"]["train"],
-                eval_dataset=dataset_dict["heads"]["dev"],
+                train_dataset=dataset_dict_heads["train"],
+                eval_dataset=dataset_dict_dep["dev"],
+                data_collator=data_collator
                 )
             
             trainer_dep.train()

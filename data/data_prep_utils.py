@@ -211,49 +211,6 @@ def tokenize_data_dep(sentences: List, tokenizer) -> List:
         tokenized_sentences.append((tokens, labels))
     return tokenized_sentences
 
-def prepare_input_dep(tokenized_data: List, 
-                      tokenizer, 
-                      label_map: set, 
-                      device) -> Tuple:
-    
-    token_ids = []
-    attention_masks = []
-    token_type_ids = []
-    encoded_labels = []
-
-    max_seq_length = max(len(tokens) for tokens, _ in tokenized_data)
-    
-    for tokens, labels in tokenized_data:
-        joined_text = " ".join(tokens)
-        encoded_dict = tokenizer.encode_plus(joined_text,
-                                             add_special_tokens=True,
-                                             max_length=max_seq_length,
-                                             padding='max_length',
-                                             truncation=True, 
-                                             return_attention_mask=True,
-                                             return_token_type_ids=True,
-                                             return_tensors='pt')
-        
-        token_ids.append(encoded_dict["input_ids"])
-        attention_masks.append(encoded_dict["attention_mask"])
-        token_type_ids.append(encoded_dict["token_type_ids"])
-        mapped_labels = [label_map[label] for label in labels]
-        encoded_labels.append(torch.tensor(mapped_labels))
-
-    labels_padded = pad_sequence(encoded_labels, 
-                                 batch_first=True, 
-                                 padding_value = -100)
-    labels_padded.to(device)
-    token_ids = torch.cat(token_ids, dim=0)
-    token_ids.to(device)
-    attention_masks = torch.cat(attention_masks, dim=0)
-    attention_masks.to(device)
-    token_type_ids = torch.cat(token_type_ids, dim=0)
-    token_type_ids.to(device)
-
-    
-    return token_ids, attention_masks, token_type_ids, labels_padded
-
 
 def get_labels_heads(file_paths: List[str]) -> set:
     

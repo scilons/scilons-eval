@@ -13,11 +13,10 @@ from data.data_prep_utils import (
     extract_dep_data,
     get_labels_dep,
     tokenize_data_dep,
-    prepare_input_dep,
     get_labels_heads,
     tokenize_data_heads
 )
-from typing import Dict
+from typing import Dict, List, Tuple
 import os
 
 class DatasetPrep:
@@ -43,20 +42,23 @@ class DatasetPrep:
         data_types = ["train", "dev", "test"]
 
         data_paths = [self.data_path + "/" + dataset + ".txt" for dataset in data_types]
-        
-        if self.task == "ner" or self.task == "pico":
-            labels_set = self._get_labels_ner_pico(data_paths)
-        elif self.task == "rel" or self.task == "cls":
-            labels_set = get_labels_rel_cls(data_paths)
-        elif self.task == "dep":
+
+        if self.task == "dep":
             labels_set_dep = get_labels_dep(data_paths)
             labels_set_head = get_labels_heads(data_paths)
             labels_mapper_dep = {label: i for i, label in enumerate(labels_set_dep)} 
-            labels_mapper_head = {label: i for i, label in enumerate(labels_set_head)} 
-    
-        labels_mapper = {label: i for i, label in enumerate(labels_set)}
-
+            labels_mapper_head = {label: i for i, label in enumerate(labels_set_head)}
+        else:
+            if self.task == "ner" or self.task == "pico":
+                labels_set = self._get_labels_ner_pico(data_paths)
+            elif self.task == "rel" or self.task == "cls":
+                labels_set = get_labels_rel_cls(data_paths)
+                
+            labels_mapper = {label: i for i, label in enumerate(labels_set)}
+            
         dataset_dict = DatasetDict()
+        dataset_dict_dep = DatasetDict()
+        dataset_dict_heads = DatasetDict()
 
         for path in data_paths:
             # Read txt file based on given task
@@ -87,19 +89,19 @@ class DatasetPrep:
                     tokenized_sentences, labels_mapper, categor_labels, self.device
                 )
             elif self.task == "dep":
-                token_ids_dep, attention_masks_dep, token_type_ids_dep, labels_dep = prepare_input_dep(
+                token_ids_dep, attention_masks_dep, token_type_ids_dep, labels_dep = self.prepare_input_dep(
                     tokenized_sentences_dep, self.tokenizer, labels_mapper_dep, self.device
                 )                      
                 
-                token_ids_heads, attention_masks_heads, token_type_ids_heads, labels_heads = prepare_input_dep(
+                token_ids_heads, attention_masks_heads, token_type_ids_heads, labels_heads = self.prepare_input_dep(
                     tokenized_sentences_heads, self.tokenizer, labels_mapper_head, self.device
                 )
-            # Create a Dataset object
 
             directory = path.split(os.path.sep)
             dataset_name = directory[-1]
 
             if self.task == "dep":
+                
                 dataset_inputs_dep = Dataset.from_dict(
                     {
                         "input_ids": token_ids_dep,
@@ -108,6 +110,8 @@ class DatasetPrep:
                         "labels": labels_dep,
                     }
                 )
+                dataset_dict_dep[dataset_name[:-4]] = dataset_inputs_dep
+                
                 dataset_inputs_heads = Dataset.from_dict(
                     {
                         "input_ids": token_ids_heads,
@@ -117,25 +121,23 @@ class DatasetPrep:
                     }
                 )
 
-                dataset_dict["dep"] = dataset_inputs_dep
-                dataset_dict["heads"] = dataset_inputs_heads
+                dataset_dict_heads[dataset_name[:-4]] = dataset_inputs_heads
 
-                dataset_dict[dataset_name[:-4]] = {"dep": dataset_inputs_dep, "heads": dataset_inputs_heads}
+            else:
                 
-                return dataset_dict, labels_mapper_dep, labels_mapper_head
+                dataset_inputs = Dataset.from_dict(
+                    {
+                        "input_ids": token_ids,
+                        "attention_mask": attention_masks,
+                        "token_type_ids": token_type_ids,
+                        "labels": labels
+                    }
+                )
+                dataset_dict[dataset_name[:-4]] = dataset_inputs
 
-
-            dataset_inputs = Dataset.from_dict(
-                {
-                    "input_ids": token_ids,
-                    "attention_mask": attention_masks,
-                    "token_type_ids": token_type_ids,
-                    "labels": labels,
-                }
-            )
-
-            dataset_dict[dataset_name[:-4]] = dataset_inputs
-
+        if self.task == "dep":
+            return dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head
+        
         return dataset_dict, labels_mapper
 
     def _get_labels_ner_pico(self, file_paths):
@@ -163,6 +165,38 @@ class DatasetPrep:
             padding=True,
             return_token_type_ids=True
         )
+
+    def prepare_input_dep(self, tokenized_data: List, tokenizer, label_map: set, device) -> Tuple:
+        
+        token_ids = []
+        attention_masks = []
+        token_type_ids = []
+        encoded_labels = []
+        
+        for tokens, labels in tokenized_data:
+            joined_text = " ".join(tokens)
+            encoded_dict = tokenizer.encode_plus(joined_text,
+                                                 add_special_tokens=True,
+                                                 max_length=self.max_length,
+                                                 padding='max_length',
+                                                 truncation=True, 
+                                                 return_attention_mask=True,
+                                                 return_token_type_ids=True,
+                                                 return_tensors='pt')
+            token_ids.append(encoded_dict["input_ids"])
+            attention_masks.append(encoded_dict["attention_mask"])
+            token_type_ids.append(encoded_dict["token_type_ids"])
+            mapped_labels = [label_map[label] for label in labels]
+            encoded_labels.append(torch.tensor(mapped_labels))
+            
+        token_ids = torch.cat(token_ids, dim=0)
+        token_ids.to(device)
+        attention_masks = torch.cat(attention_masks, dim=0)
+        attention_masks.to(device)
+        token_type_ids = torch.cat(token_type_ids, dim=0)
+        token_type_ids.to(device)
+        
+        return token_ids, attention_masks, token_type_ids, encoded_labels
 
     def prepare_input_ner(self, tokenized_data, label_map):
         
