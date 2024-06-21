@@ -32,6 +32,7 @@ class ModelEval:
 
     def train_model(self):
         tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name, token=self.hf_token, trust_remote_code=True)
+        
         dataset_prep = DatasetPrep(
             task=self.task,
             data_path=self.data_path,
@@ -50,6 +51,7 @@ class ModelEval:
             model = AutoModelForTokenClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
             )
+            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=labels_mapper["O"])
         elif self.task == "rel" or self.task == "cls":
             model = AutoModelForSequenceClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
@@ -62,18 +64,6 @@ class ModelEval:
                 self.model_name, num_labels=len(labels_mapper_head), token=self.hf_token, trust_remote_code=True
             )
             data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
-
-        training_args = TrainingArguments(
-            output_dir=self.hf_args.output_dir,
-            num_train_epochs=self.hf_args.num_train_epochs,
-            per_device_train_batch_size=self.hf_args.per_device_train_batch_size,
-            report_to=self.hf_args.report_to,
-            logging_steps=self.hf_args.logging_steps,
-            save_steps=self.hf_args.save_steps,
-            evaluation_strategy=self.hf_args.evaluation_strategy,
-            eval_steps=self.hf_args.eval_steps,
-            learning_rate=self.hf_args.learning_rate
-        )
 
         if self.task == "dep":
             trainer_dep = Trainer(
@@ -100,7 +90,22 @@ class ModelEval:
 
             return model_dep, model_heads, dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head
 
+        if self.task == "ner" or self.task == "pico":
+            
+            trainer = Trainer(
+                model=model,
+                args=self.hf_args,
+                train_dataset=dataset_dict["train"],
+                eval_dataset=dataset_dict["dev"],
+                data_collator=data_collator
+            )
 
+            trainer.train()
+            trainer.save_model("results/models")
+            
+            return model, dataset_dict, labels_mapper
+            
+            
         trainer = Trainer(
             model=model,
             args=self.hf_args,
@@ -242,8 +247,10 @@ class ModelEval:
                     )
 
                 if self.task == "pico":
+                    # Trim the predicted_labels to match the length of the true labels
+                    trimmed_predictions = predicted_labels[:len(labels)]
                     # Results for pico are lists but integers for the other tasks
-                    predictions.extend(predicted_labels)
+                    predictions.extend(trimmed_predictions)
                     true_labels.extend(labels)
                 else:
                     predictions.append(predicted_labels)

@@ -42,7 +42,6 @@ def main():
 
     tasks_datasets_dict = {
     "ner": [
-        
         data_path + "/ner/bc5cdr",
         data_path + "/ner/JNLPBA",
         data_path + "/ner/NCBI-disease", 
