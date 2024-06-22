@@ -49,7 +49,7 @@ The following tasks are available for evaluation:
 * ```pico```:  A sequence labeling task where the model extracts spans describing the Participants, Interventions, Comparisons, and Outcomes (PICO) in a clinical trial paper.
 Evaluated using macro-F1 on the token level.
 
-* ```dep```:
+* ```dep```: A task that analyzes the grammatical structure of a sentence to identify relationships between words. Evaluated using Unlabeled Attachment Scores (UAS), which measures the percentage of correctly identified head-dependent pairs, and Labeled Attachment Score (LAS), which accounts for the correct labeling of these dependencies. 
 
 * ```rel```: Relation Classication. The model predicts the type of relation expressed between two entities, which are encapsulated in the sentence by inserted special tokens. REL tasks are evaluated using Macro F1 on the sentence level.
 
