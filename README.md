@@ -102,3 +102,5 @@ All results above were trained using the following hyperparameters:
 All other hyperparameters are the default TrainingArguments values. 
 
 NER and DEP models were trained using the cased SciBERT variant to match the results in the SciBERT paper. All other tasks were trained using the uncased model variant. DEP results are calculated without removing punctuation. 
+
+** [Link to spreadsheet](https://docs.google.com/spreadsheets/d/1MtHJD3seCouLMQxDaiNkrEPLI3kpo-EhAwwn-G2zrK0/edit?gid=0#gid=0) comparing model results (will keep updating).
