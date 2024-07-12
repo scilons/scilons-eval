@@ -63,7 +63,7 @@ class ModelEval:
             model_heads = AutoModelForTokenClassification.from_pretrained(
                 self.model_name, num_labels=len(labels_mapper_head), token=self.hf_token, trust_remote_code=True
             )
-            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
+            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100, padding='max_length', max_length=self.max_length)
 
         if self.task == "dep":
             trainer_dep = Trainer(

@@ -187,7 +187,7 @@ class DatasetPrep:
             attention_masks.append(encoded_dict["attention_mask"])
             token_type_ids.append(encoded_dict["token_type_ids"])
             mapped_labels = [label_map[label] for label in labels]
-            encoded_labels.append(torch.tensor(mapped_labels))
+            encoded_labels.append(torch.tensor(mapped_labels[:self.max_length]))
             
         token_ids = torch.cat(token_ids, dim=0)
         token_ids.to(device)
