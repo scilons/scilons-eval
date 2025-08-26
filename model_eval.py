@@ -5,11 +5,17 @@ from transformers import (
     Trainer,
     TrainingArguments,
     HfArgumentParser,
-    DataCollatorForTokenClassification
+    DataCollatorForTokenClassification,
+    T5ForTokenClassification,
+    T5ForSequenceClassification,
 )
 from data.prepare_data import DatasetPrep
 from data.data_prep_utils import extract_spans, extract_dep_data
-from dep_eval_utils import calculate_uas_las, collect_predictions_dep, collect_gold_labels_dep
+from dep_eval_utils import (
+    calculate_uas_las,
+    collect_predictions_dep,
+    collect_gold_labels_dep,
+)
 from sklearn.metrics import f1_score, precision_score, recall_score
 from collections import defaultdict
 import argparse
@@ -20,7 +26,18 @@ from typing import Optional
 
 
 class ModelEval:
-    def __init__(self, task, model_name, tokenizer_name, data_path, device, hf_args, hf_token, max_length):
+    def __init__(
+        self,
+        task,
+        model_name,
+        tokenizer_name,
+        data_path,
+        device,
+        hf_args,
+        hf_token,
+        max_length,
+        s2s_model: bool = False,
+    ):
         self.task = task
         self.model_name = model_name
         self.tokenizer_name = tokenizer_name
@@ -29,41 +46,38 @@ class ModelEval:
         self.hf_args = hf_args
         self.hf_token = hf_token
         self.max_length = max_length
+        self.s2s_model = s2s_model
 
     def train_model(self):
-        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name, token=self.hf_token, trust_remote_code=True)
-        
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.tokenizer_name, token=self.hf_token, trust_remote_code=True
+        )
+
         dataset_prep = DatasetPrep(
             task=self.task,
             data_path=self.data_path,
             tokenizer=tokenizer,
             device=self.device,
-            max_length = self.max_length
+            max_length=self.max_length,
         )
-        
+
         if self.task == "dep":
-            dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head = dataset_prep.run()
+            (
+                dataset_dict_dep,
+                dataset_dict_heads,
+                labels_mapper_dep,
+                labels_mapper_head,
+            ) = dataset_prep.run()
 
         else:
             dataset_dict, labels_mapper = dataset_prep.run()
 
         if self.task == "ner" or self.task == "pico":
-            model = AutoModelForTokenClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
-            )
-            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=labels_mapper["O"])
+            model, data_collator = self.ner_model()
         elif self.task == "rel" or self.task == "cls":
-            model = AutoModelForSequenceClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper), token=self.hf_token, trust_remote_code=True
-            )
+            model = self.rel_model()
         elif self.task == "dep":
-            model_dep = AutoModelForTokenClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper_dep), token=self.hf_token, trust_remote_code=True
-            )
-            model_heads = AutoModelForTokenClassification.from_pretrained(
-                self.model_name, num_labels=len(labels_mapper_head), token=self.hf_token, trust_remote_code=True
-            )
-            data_collator = DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100, padding='max_length', max_length=self.max_length)
+            model_dep, model_heads, data_collator = self.dep_model()
 
         if self.task == "dep":
             trainer_dep = Trainer(
@@ -71,41 +85,47 @@ class ModelEval:
                 args=self.hf_args,
                 train_dataset=dataset_dict_dep["train"],
                 eval_dataset=dataset_dict_dep["dev"],
-                data_collator=data_collator
-                )
-            
+                data_collator=data_collator,
+            )
+
             trainer_heads = Trainer(
                 model=model_heads,
                 args=self.hf_args,
                 train_dataset=dataset_dict_heads["train"],
                 eval_dataset=dataset_dict_heads["dev"],
-                data_collator=data_collator
-                )
-            
+                data_collator=data_collator,
+            )
+
             trainer_dep.train()
             trainer_dep.save_model("results/models")
 
             trainer_heads.train()
             trainer_heads.save_model("results/models")
 
-            return model_dep, model_heads, dataset_dict_dep, dataset_dict_heads, labels_mapper_dep, labels_mapper_head
+            return (
+                model_dep,
+                model_heads,
+                dataset_dict_dep,
+                dataset_dict_heads,
+                labels_mapper_dep,
+                labels_mapper_head,
+            )
 
         if self.task == "ner" or self.task == "pico":
-            
+
             trainer = Trainer(
                 model=model,
                 args=self.hf_args,
                 train_dataset=dataset_dict["train"],
                 eval_dataset=dataset_dict["dev"],
-                data_collator=data_collator
+                data_collator=data_collator,
             )
 
             trainer.train()
             trainer.save_model("results/models")
-            
+
             return model, dataset_dict, labels_mapper
-            
-            
+
         trainer = Trainer(
             model=model,
             args=self.hf_args,
@@ -119,48 +139,128 @@ class ModelEval:
 
         return model, dataset_dict, labels_mapper
 
+    def ner_model(self, labels_mapper, tokenizer):
+        if not self.s2s_model:
+            model = AutoModelForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        else:
+            model = T5ForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        data_collator = DataCollatorForTokenClassification(
+            tokenizer, label_pad_token_id=labels_mapper["O"]
+        )
+        return model, data_collator
+
+    def rel_model(self, labels_mapper):
+        if not self.s2s_model:
+            model = AutoModelForSequenceClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        else:
+            model = T5ForSequenceClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        return model
+
+    def dep_model(self, labels_mapper_dep, labels_mapper_head, tokenizer):
+        if not self.s2s_model:
+            model_dep = AutoModelForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper_dep),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+            model_heads = AutoModelForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper_head),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        else:
+            model_dep = T5ForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper_dep),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+            model_heads = T5ForTokenClassification.from_pretrained(
+                self.model_name,
+                num_labels=len(labels_mapper_head),
+                token=self.hf_token,
+                trust_remote_code=True,
+            )
+        data_collator = DataCollatorForTokenClassification(
+            tokenizer,
+            label_pad_token_id=-100,
+            padding="max_length",
+            max_length=self.max_length,
+        )
+        return model_dep, model_heads, data_collator
+
     def evaluate_model(self):
-        
+
         if self.task == "dep":
-            
+
             (
-                trained_model_dep, 
-                trained_model_heads, 
-                dataset_dict_dep, 
-                dataset_dict_heads, 
-                labels_mapper_dep, 
-                labels_mapper_head
+                trained_model_dep,
+                trained_model_heads,
+                dataset_dict_dep,
+                dataset_dict_heads,
+                labels_mapper_dep,
+                labels_mapper_head,
             ) = self.train_model()
-            
+
             trained_model_dep.eval()
 
             reverse_label_map_dep = {v: k for k, v in labels_mapper_dep.items()}
             reverse_label_map_head = {v: k for k, v in labels_mapper_head.items()}
 
-            pred_dep_labels = collect_predictions_dep(dataset_dict_dep["test"], 
-                                                      trained_model_dep, 
-                                                      reverse_label_map_dep,
-                                                      self.device)
+            pred_dep_labels = collect_predictions_dep(
+                dataset_dict_dep["test"],
+                trained_model_dep,
+                reverse_label_map_dep,
+                self.device,
+            )
 
-            gold_dep_labels = collect_gold_labels_dep(dataset_dict_dep["test"]["labels"],
-                                                      reverse_label_map_dep)
+            gold_dep_labels = collect_gold_labels_dep(
+                dataset_dict_dep["test"]["labels"], reverse_label_map_dep
+            )
 
-            pred_head_labels = collect_predictions_dep(dataset_dict_heads["test"], 
-                                                       trained_model_heads, 
-                                                       reverse_label_map_head ,
-                                                       self.device)
-            
-            gold_head_labels =  collect_gold_labels_dep(dataset_dict_heads["test"]["labels"],
-                                                        reverse_label_map_head)
-            
+            pred_head_labels = collect_predictions_dep(
+                dataset_dict_heads["test"],
+                trained_model_heads,
+                reverse_label_map_head,
+                self.device,
+            )
+
+            gold_head_labels = collect_gold_labels_dep(
+                dataset_dict_heads["test"]["labels"], reverse_label_map_head
+            )
+
             words_test_set = extract_dep_data(self.data_path + "/test.txt")
             words_test_set = [item[0] for sample in words_test_set for item in sample]
 
-            uas, las = calculate_uas_las(words_test_set, 
-                                         gold_head_labels, 
-                                         gold_dep_labels, 
-                                         pred_head_labels, 
-                                         pred_dep_labels)
+            uas, las = calculate_uas_las(
+                words_test_set,
+                gold_head_labels,
+                gold_dep_labels,
+                pred_head_labels,
+                pred_dep_labels,
+            )
 
             return uas, las
 
@@ -248,7 +348,7 @@ class ModelEval:
 
                 if self.task == "pico":
                     # Trim the predicted_labels to match the length of the true labels
-                    trimmed_predictions = predicted_labels[:len(labels)]
+                    trimmed_predictions = predicted_labels[: len(labels)]
                     # Results for pico are lists but integers for the other tasks
                     predictions.extend(trimmed_predictions)
                     true_labels.extend(labels)
@@ -261,14 +361,11 @@ class ModelEval:
 
         return micro_f1, macro_f1
 
+
 @dataclass
 class CustomArguments:
-    task: str = field(
-        metadata={"help": "Specify the task name"}
-    )
-    model: str = field(
-        metadata={"help": "Specify the model name from HuggingFace"}
-    )
+    task: str = field(metadata={"help": "Specify the task name"})
+    model: str = field(metadata={"help": "Specify the model name from HuggingFace"})
     tokenizer: str = field(
         metadata={"help": "Specify the tokenizer name from HuggingFace"}
     )
@@ -276,11 +373,16 @@ class CustomArguments:
         metadata={"help": "Specify your HuggingFace token to access a closed modek."}
     )
     max_length: int = field(
-        metadata={"help": "Specify the maximum sequence length of the model to use when tokenizing."}
+        metadata={
+            "help": "Specify the maximum sequence length of the model to use when tokenizing."
+        }
     )
     data: str = field(
-        metadata={"help": "Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)"}
+        metadata={
+            "help": "Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)"
+        }
     )
+
 
 def main():
 
@@ -302,27 +404,28 @@ def main():
         tokenizer_name=tokenizer_name,
         data_path=data_path,
         device=device,
-        hf_args = training_args,
-        hf_token = hf_token, 
-        max_length = max_length
+        hf_args=training_args,
+        hf_token=hf_token,
+        max_length=max_length,
     )
 
-    if task == 'dep':
+    if task == "dep":
         uas, las = model_eval.evaluate_model()
         print("UAS score: ", uas)
         print("LAS score: ", las)
-        
+
     else:
         micro_f1, macro_f1 = model_eval.evaluate_model()
 
-    if task == 'ner':
+    if task == "ner":
         print("Macro F1 score (span-level): ", macro_f1)
-    elif task == 'pico':
+    elif task == "pico":
         print("Micro F1 score (token-level): ", micro_f1)
         print("Macro F1 score (token-level): ", macro_f1)
-    elif task == 'rel' or task == 'cls':
+    elif task == "rel" or task == "cls":
         print("Micro F1 score (sentence-level): ", micro_f1)
         print("Macro F1 score (sentence-level): ", macro_f1)
-        
+
+
 if __name__ == "__main__":
     main()
