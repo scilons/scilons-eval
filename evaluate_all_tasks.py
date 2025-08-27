@@ -24,6 +24,9 @@ class CustomArgumentsGeneral:
     max_length: int = field(
         metadata={"help": "Specify the maximum sequence length of the model to use when tokenizing."}
     )
+    seq_to_seq_model: bool = field(
+           default=False, 
+           metadata={"help": ""})
     
     
 
@@ -37,6 +40,8 @@ def main():
     tokenizer_name = custom_args.tokenizer
     data_path = custom_args.data
     max_length = custom_args.max_length
+    seq_to_seq_model = custom_args.seq_to_seq_model
+
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -87,7 +92,8 @@ def main():
                 device=device,
                 hf_args = training_args, 
                 hf_token = hf_token,
-                max_length = max_length
+                max_length = max_length,
+                s2s_model = seq_to_seq_model
             )
             
             score1, score2 = model_eval.evaluate_model()
