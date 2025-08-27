@@ -36,7 +36,7 @@ class ModelEval:
         hf_args,
         hf_token,
         max_length,
-        s2s_model: bool = True,
+        s2s_model: bool = False,
     ):
         self.task = task
         self.model_name = model_name
@@ -77,7 +77,9 @@ class ModelEval:
         elif self.task == "rel" or self.task == "cls":
             model = self.rel_model(labels_mapper)
         elif self.task == "dep":
-            model_dep, model_heads, data_collator = self.dep_model(labels_mapper_dep, labels_mappers_head ,tokenizer)
+            model_dep, model_heads, data_collator = self.dep_model(
+                labels_mapper_dep, labels_mappers_head, tokenizer
+            )
 
         if self.task == "dep":
             trainer_dep = Trainer(
@@ -284,7 +286,10 @@ class ModelEval:
                     if not self.s2s_model:
                         outputs = trained_model(**inputs)
                     else:
-                        outputs = trained_model(input_ids=inputs['input_ids'],attention_mask=inputs['attention_mask'])
+                        outputs = trained_model(
+                            input_ids=inputs["input_ids"],
+                            attention_mask=inputs["attention_mask"],
+                        )
                     predictions = (
                         torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     )
@@ -347,7 +352,10 @@ class ModelEval:
                     if not self.s2s_model:
                         outputs = trained_model(**inputs)
                     else:
-                        outputs = trained_model(input_ids=inputs['input_ids'],attention_mask=inputs['attention_mask'])
+                        outputs = trained_model(
+                            input_ids=inputs["input_ids"],
+                            attention_mask=inputs["attention_mask"],
+                        )
                     predicted_labels = (
                         torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     )
@@ -388,6 +396,12 @@ class CustomArguments:
             "help": "Specify the data path (the folder that contains train.txt, dev.txt, and test.txt)"
         }
     )
+    seq_to_seq_model: bool = field(
+        default=False,
+        metadata={
+            "help": "If set to true sequence to sequence models are evaluated. Default is False."
+        },
+    )
 
 
 def main():
@@ -401,6 +415,7 @@ def main():
     hf_token = custom_args.hf_token
     max_length = custom_args.max_length
     data_path = custom_args.data
+    s2s_model = custom_args.seq_to_seq_model
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -413,6 +428,7 @@ def main():
         hf_args=training_args,
         hf_token=hf_token,
         max_length=max_length,
+        s2s_model=s2s_model,
     )
 
     if task == "dep":
