@@ -36,7 +36,7 @@ class ModelEval:
         hf_args,
         hf_token,
         max_length,
-        s2s_model: bool = False,
+        s2s_model: bool = True,
     ):
         self.task = task
         self.model_name = model_name
@@ -73,11 +73,11 @@ class ModelEval:
             dataset_dict, labels_mapper = dataset_prep.run()
 
         if self.task == "ner" or self.task == "pico":
-            model, data_collator = self.ner_model()
+            model, data_collator = self.ner_model(labels_mapper, tokenizer)
         elif self.task == "rel" or self.task == "cls":
-            model = self.rel_model()
+            model = self.rel_model(labels_mapper)
         elif self.task == "dep":
-            model_dep, model_heads, data_collator = self.dep_model()
+            model_dep, model_heads, data_collator = self.dep_model(labels_mapper_dep, labels_mappers_head ,tokenizer)
 
         if self.task == "dep":
             trainer_dep = Trainer(
@@ -281,7 +281,10 @@ class ModelEval:
                 labels = sample["labels"]
 
                 with torch.no_grad():
-                    outputs = trained_model(**inputs)
+                    if not self.s2s_model:
+                        outputs = trained_model(**inputs)
+                    else:
+                        outputs = trained_model(input_ids=inputs['input_ids'],attention_mask=inputs['attention_mask'])
                     predictions = (
                         torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     )
@@ -341,7 +344,10 @@ class ModelEval:
                 labels = sample["labels"]
 
                 with torch.no_grad():
-                    outputs = trained_model(**inputs)
+                    if not self.s2s_model:
+                        outputs = trained_model(**inputs)
+                    else:
+                        outputs = trained_model(input_ids=inputs['input_ids'],attention_mask=inputs['attention_mask'])
                     predicted_labels = (
                         torch.argmax(outputs.logits, dim=-1).squeeze(0).tolist()
                     )
