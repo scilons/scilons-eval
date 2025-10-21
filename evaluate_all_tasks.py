@@ -1,5 +1,4 @@
 from model_eval import ModelEval
-import argparse
 import torch
 import os
 import pandas as pd
@@ -10,7 +9,7 @@ from dataclasses import dataclass, field
 @dataclass
 class CustomArgumentsGeneral:
     hf_token: str = field(
-        metadata={"help": "Specify your HuggingFace token to access a closed modek."}
+        metadata={"help": "Specify your HuggingFace token to access a closed model."}
     )
     model: str = field(
         metadata={"help": "Specify the model name from HuggingFace"}
